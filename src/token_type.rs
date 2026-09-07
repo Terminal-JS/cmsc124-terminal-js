@@ -15,14 +15,12 @@ pub enum TokenType {
     Plus,
     Minus,
     Star,       // multiplication
-    FSlash,     // forward slash for division
+    Slash,     // forward slash for division
     Percent,    // modulo
 
     // boolean operators
     Less,
     LessEqual,
-    Greater,
-    GreaterEqual,
     Equal,
     EqualEqual,
     Bang,       // '!'

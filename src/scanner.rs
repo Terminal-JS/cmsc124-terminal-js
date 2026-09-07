@@ -50,6 +50,130 @@ impl Scanner {
         &self.tokens;
     }
 
+    // method to scan a single token from the source 
+    fn scan_token(&mut self) {
+        let c = self.advance();
+
+        match c {
+            // Grouping symbols
+            '(' => self.add_token(TokenType::LeftParen, Literal::None),
+            ')' => self.add_token(TokenType::RightParen, Literal::None),
+            '{' => self.add_token(TokenType::LeftBrace, Literal::None),
+            '}' => self.add_token(TokenType::RightBrace, Literal::None),
+            '[' => self.add_token(TokenType::LeftBracket, Literal::None),
+            ']' => self.add_token(TokenType::RightBracket, Literal::None),
+
+            // Arithmetic operators
+            '+' => self.add_token(TokenType::Plus, Literal::None),
+            '-' => self.add_token(TokenType::Minus, Literal::None),
+            '*' => self.add_token(TokenType::Star, Literal::None),
+            '/' => self.add_token(TokenType::Slash, Literal::None),
+            '%' => self.add_token(TokenType::Percent, Literal::None),
+
+            // Boolean operators
+            '<' => {
+                if self.match_char('=') {
+                    self.add_token(TokenType::LessEqual, Literal::None);
+                } else {
+                    self.add_token(TokenType::Less, Literal::None);
+                }
+            }
+            '=' => {
+                if self.match_char('=') {
+                    self.add_token(TokenType::EqualEqual, Literal::None);
+                } else {
+                    self.add_token(TokenType::Equal, Literal::None);
+                }
+            }
+            '!' => {
+                if self.match_char('=') {
+                    self.add_token(TokenType::BangEqual, Literal::None);
+                } else {
+                    self.add_token(TokenType::Bang, Literal::None);
+                }
+            }
+
+            // Separators
+            '.' => self.add_token(TokenType::Dot, Literal::None),
+            ',' => self.add_token(TokenType::Comma, Literal::None),
+            ';' => self.add_token(TokenType::Semicolon, Literal::None),
+
+            // Keywords
+            'v' => {
+                if self.match_keyword("ar") {
+                    self.add_token(TokenType::Var, Literal::None);
+                } else {
+                    self.add_token(TokenType::Identifier, Literal::None);
+                }
+            }
+            'i' => {
+                if self.match_keyword("f") {
+                    self.add_token(TokenType::If, Literal::None);
+                } else {
+                    self.add_token(TokenType::Identifier, Literal::None);
+                }
+            }
+            'e' => {
+                if self.match_keyword("lse") {
+                    self.add_token(TokenType::Else, Literal::None);
+                } else {
+                    self.add_token(TokenType::Identifier, Literal::None);
+                }
+            }
+            'w' => {
+                if self.match_keyword("hile") {
+                    self.add_token(TokenType::While, Literal::None);
+                } else {
+                    self.add_token(TokenType::Identifier, Literal::None);
+                }
+            }
+            'p' => {
+                if self.match_keyword("rint") {
+                    self.add_token(TokenType::Print, Literal::None);
+                } else {
+                    self.add_token(TokenType::Identifier, Literal::None);
+                }
+            }
+            't' => {
+                if self.match_keyword("rue") {
+                    self.add_token(TokenType::True, Literal::None);
+                } else {
+                    self.add_token(TokenType::Identifier, Literal::None);
+                }
+            }
+            'f' => {
+                if self.match_keyword("alse") {
+                    self.add_token(TokenType::False, Literal::None);
+                } else {
+                    self.add_token(TokenType::Identifier, Literal::None);
+                }
+            }
+            'n' => {
+                if self.match_keyword("il") {
+                    self.add_token(TokenType::Nil, Literal::None);
+                } else {
+                    self.add_token(TokenType::Identifier, Literal::None);
+                }
+            }
+
+            // Literals
+            '"' => self.string(),
+            c if c.is_digit(10) => self.number(),
+            c if c.is_alphabetic() || c == '_' => self.identifier(),
+
+            // Ignore whitespace
+            ' ' | '\r' | '\t' => {}
+            '\n' => self.line += 1,
+
+            // Unrecognized character
+            _ => {
+                // print an error message for unrecognized characters
+                eprintln!("Unexpected character: {}", c);
+            }
+
+        }
+    }
+
 
 
     
