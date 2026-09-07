@@ -54,7 +54,7 @@ impl Scanner {
     // to be refractored
     fn scan_token(&mut self) {
         let c = self.advance();
- 
+
         match c {
             // Grouping symbols
             '(' => self.add_token(TokenType::LeftParen, Literal::None),
@@ -63,27 +63,27 @@ impl Scanner {
             '}' => self.add_token(TokenType::RightBrace, Literal::None),
             '[' => self.add_token(TokenType::LeftBracket, Literal::None),
             ']' => self.add_token(TokenType::RightBracket, Literal::None),
- 
+
             // Arithmetic operators
             '+' => self.add_token(TokenType::Plus, Literal::None),
             '-' => self.add_token(TokenType::Minus, Literal::None),
             '*' => self.add_token(TokenType::Star, Literal::None),
             '/' => self.add_token(TokenType::Slash, Literal::None),
             '%' => self.add_token(TokenType::Percent, Literal::None),
- 
+
             // Boolean operators 
             '<' => self.add_token(TokenType::Less, Literal::None),
             '=' => self.add_token(TokenType::Equal, Literal::None),
             '!' => self.add_token(TokenType::Bang, Literal::None),
- 
+
             // Separators
             '.' => self.add_token(TokenType::Dot, Literal::None),
             ',' => self.add_token(TokenType::Comma, Literal::None),
- 
+
             // Ignore whitespace
             ' ' | '\r' | '\t' => {}
             '\n' => self.line += 1,
- 
+
             // Unrecognized character
             _ => {
                 eprintln!("Unexpected character: {}", c);
@@ -100,6 +100,35 @@ impl Scanner {
         true
     }
 
-    // todo: advance(), add_token(), peek()
-    
+
+    fn advance(&mut self) -> char {
+        // advances the cursor to the next character
+        let c = self.source[self.current];
+        self.current += 1;
+        c   // return c
+    }
+
+    fn peek(&self) -> char{
+        // reads and returns the character ahead of current
+        if self.is_at_end() {
+            return '\0';
+        }
+        Scanner::source[self.current]
+    }
+
+    fn add_token(&mut self, type, literal) {
+        // bundles scanned lexeme into a structured token object
+        // and appends to list of output tokens
+        let text: String = self.source[self.start..self.current]
+            .iter()
+            .collect();
+        
+        self.tokens.push(new Token {
+            token_type,
+            lexeme: text,
+            literal,
+            line: self.line,
+        };
+    }
+
 }
