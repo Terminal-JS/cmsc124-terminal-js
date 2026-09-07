@@ -51,6 +51,7 @@ impl Scanner {
     }
 
     // method to scan a single token from the source 
+    // to be refractored
     fn scan_token(&mut self) {
         let c = self.advance();
 
@@ -96,65 +97,6 @@ impl Scanner {
             // Separators
             '.' => self.add_token(TokenType::Dot, Literal::None),
             ',' => self.add_token(TokenType::Comma, Literal::None),
-            ';' => self.add_token(TokenType::Semicolon, Literal::None),
-
-            // Keywords
-            'v' => {
-                if self.match_keyword("ar") {
-                    self.add_token(TokenType::Var, Literal::None);
-                } else {
-                    self.add_token(TokenType::Identifier, Literal::None);
-                }
-            }
-            'i' => {
-                if self.match_keyword("f") {
-                    self.add_token(TokenType::If, Literal::None);
-                } else {
-                    self.add_token(TokenType::Identifier, Literal::None);
-                }
-            }
-            'e' => {
-                if self.match_keyword("lse") {
-                    self.add_token(TokenType::Else, Literal::None);
-                } else {
-                    self.add_token(TokenType::Identifier, Literal::None);
-                }
-            }
-            'w' => {
-                if self.match_keyword("hile") {
-                    self.add_token(TokenType::While, Literal::None);
-                } else {
-                    self.add_token(TokenType::Identifier, Literal::None);
-                }
-            }
-            'p' => {
-                if self.match_keyword("rint") {
-                    self.add_token(TokenType::Print, Literal::None);
-                } else {
-                    self.add_token(TokenType::Identifier, Literal::None);
-                }
-            }
-            't' => {
-                if self.match_keyword("rue") {
-                    self.add_token(TokenType::True, Literal::None);
-                } else {
-                    self.add_token(TokenType::Identifier, Literal::None);
-                }
-            }
-            'f' => {
-                if self.match_keyword("alse") {
-                    self.add_token(TokenType::False, Literal::None);
-                } else {
-                    self.add_token(TokenType::Identifier, Literal::None);
-                }
-            }
-            'n' => {
-                if self.match_keyword("il") {
-                    self.add_token(TokenType::Nil, Literal::None);
-                } else {
-                    self.add_token(TokenType::Identifier, Literal::None);
-                }
-            }
 
             // Literals
             '"' => self.string(),
@@ -172,9 +114,43 @@ impl Scanner {
             }
 
         }
+
     }
 
+    fn identifier(&mut self) {
+        // Continue consuming characters while they are alphanumeric or underscores
+        while self.peek().is_alphanumeric() || self.peek() == '_' {
+            self.advance();
+        }
 
+        // Extract the lexeme from the source
+        let text: String = self.source[self.start..self.current].iter().collect();
+        let token_type = match text.as_str() {
+            "var" => TokenType::Var,
+            "if" => TokenType::If,
+            "else" => TokenType::Else,
+            "while" => TokenType::While,
+            "print" => TokenType::Print,
+            "true" => TokenType::True,
+            "false" => TokenType::False,
+            "nil" => TokenType::Nil,
+            _ => TokenType::Identifier,
+        };
 
+        self.add_token(token_type, Literal::None);
+    }
+
+    // checker if the next character matches the expected character
+    fn match_char(&mut self, expected: char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+        if self.source[self.current] != expected {
+            return false;
+        }
+
+        self.current += 1;
+        true
+    }
     
 }
