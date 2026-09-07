@@ -2,7 +2,7 @@
 // [DESC]:      houses the Token struct
 
 // import from token_type.rs
-use crate::token_type::{self, Literal, TokenType};   // access TokenType and Literal enums
+use crate::token_type::{Literal, TokenType};   // access TokenType and Literal enums
 
 #[derive(Debug, Clone)]
 pub struct Token {
