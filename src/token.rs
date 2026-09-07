@@ -28,4 +28,25 @@ impl Token {
             line,
         }
     }
+
+    // getter for token_type
+    pub fn token_type(&self) -> TokenType {
+        self.token_type
+    }
+
+    // getter for lexeme
+    pub fn lexeme(&self) -> &str {
+        &self.lexeme
+    }   
+
+    // getter for literal
+    pub fn literal(&self) -> &Literal {
+        &self.literal
+    }   
+
+    // getter for line
+    pub fn line(&self) -> usize {
+        self.line
+    }   
+
 }
