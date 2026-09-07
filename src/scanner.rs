@@ -91,6 +91,19 @@ impl Scanner {
         }
     }
 
-    // todo: advance(), add_token()
+    // checker if the next character matches the expected character
+    fn match_char(&mut self, expected: char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+        if self.source[self.current] != expected {
+            return false;
+        }
+
+        self.current += 1;
+        true
+    }
+
+    // todo: advance(), add_token(), peek()
     
 }
