@@ -31,5 +31,26 @@ impl Scanner {
         self.current >= self.source.len()
     }
 
+    // method to scan the source text and produce a vector of tokens
+    pub fn scan_tokens(&mut self) -> &Vec<Token> {
+        while !self.is_at_end() {
+            // we are at the beginning of the next lexeme
+            self.start = self.current;
+            self.scan_token();
+        }
+
+        // add an EOF token at the end of the token stream
+        self.tokens.push(Token::new(
+            TokenType::Eof,
+            String::new(),
+            Literal::None,
+            self.line,
+        ));
+
+        &self.tokens;
+    }
+
+
+
     
 }
