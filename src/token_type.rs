@@ -58,4 +58,5 @@ pub enum TokenType {
 pub enum Literal {
     Number(f64),
     Str(String),  
+    None,   
 }
