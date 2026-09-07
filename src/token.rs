@@ -2,7 +2,7 @@
 // [DESC]:      houses the Token struct
 
 // import from token_type.rs
-use crate::token_type::{TokenType, Literal};   // access TokenType and Literal enums
+use crate::token_type::{self, Literal, TokenType};   // access TokenType and Literal enums
 
 #[derive(Debug, Clone)]
 pub struct Token {
@@ -10,4 +10,22 @@ pub struct Token {
     lexeme:     String,
     literal:    Literal,
     line:       usize,
+}
+
+impl Token {
+    // constructor that creates and returns a new Token
+    pub fn new(
+        token_type: TokenType,
+        lexeme: String,
+        literal: Literal,
+        line: usize,
+    ) -> Self {
+        // Create and return a new Token instance
+        Token {
+            token_type,
+            lexeme,
+            literal,
+            line,
+        }
+    }
 }
