@@ -38,16 +38,15 @@ pub enum TokenType {
     Print,
     True,
     False,
-
-
+    
+    Nil,    // or null, from Latin "nihil"
 
     // literals
     Identifier, // identifier or variables 
     String,
     Number,
 
-    Nil,    // or null, from Latin "nihil"
-
+    
     // end of file
     Eof,
 }
@@ -56,5 +55,5 @@ pub enum TokenType {
 pub enum Literal {
     Number(f64),
     Str(String),  
-    None,   
+    Nil,
 }
