@@ -86,6 +86,9 @@ impl Scanner {
             '.' => self.add_token(TokenType::Dot, Literal::Nil),
             ',' => self.add_token(TokenType::Comma, Literal::Nil),
 
+            // Identifiers and keywords
+            c if c.is_alphabetic() || c == '_' => self.identifier(),
+
             // Ignore whitespace
             ' ' | '\r' | '\t' => {}
             '\n' => self.line += 1,
@@ -154,6 +157,15 @@ impl Scanner {
             return '\0';
         }
         self.source[self.current]
+    }
+
+    fn peek_next(&self) -> char {
+        // reads the character one past current
+        if self.current + 1 >= self.source.len() {
+            '\0'
+        } else {
+            self.source[self.current + 1]
+        }
     }
 
     fn add_token(&mut self, token_type: TokenType, literal: Literal) {
