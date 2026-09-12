@@ -7,13 +7,12 @@
 
 ## Overview
 
-[One paragraph: what the language is for, who would use it, what writing it
-feels like.]
+To be specified.
 
 ## Host language and build
 
-- Host language: [language and version]
-- Version metadata: [file that pins it, e.g. rust-toolchain.toml, go.mod]
+- Host language: Rust
+- Version metadata: 0.1.0
 - Build: `./build.sh`
 - [Anything a fresh clone needs to know.]
 
@@ -29,7 +28,7 @@ feels like.]
 | `./run` | [Starts the REPL.] |
 
 
-Exit codes: 0 [when], 65 [when], 70 [when].
+Exit codes: `0` for  Clean, error-free run, `65` for Input rejected before real work happened, `70` for Fatal runtime engine error.
 
 ## File extension
 
@@ -42,7 +41,14 @@ Exit codes: 0 [when], 65 [when], 70 [when].
 
 | Keyword | Purpose |
 |---|---|
-| [word] | [what it does] |
+| `var` | Declares a variable |
+| `if` | Begins a conditional branch |
+| `else` | Alternate branch for `if` |
+| `while` | Loop while a condition holds |
+| `print` | Outputs a value |
+| `true` | Boolean literal, true |
+| `false` | Boolean literal, false |
+| `nil` | Absence of a value |
 
 
 ### Operators
@@ -50,7 +56,17 @@ Exit codes: 0 [when], 65 [when], 70 [when].
 
 | Operator | Category | Operands | Associativity | Precedence |
 |---|---|---|---|---|
-| [op] | [arithmetic, comparison, logical, assignment, other] | [unary or binary] | [left, right, none] | [1 = loosest] |
+| `+` | arithmetic | binary | [not yet decided] | [not yet decided] |
+| `-` | arithmetic | binary | [not yet decided] | [not yet decided] |
+| `*` | arithmetic | binary | [not yet decided] | [not yet decided] |
+| `/` | arithmetic | binary | [not yet decided] | [not yet decided] |
+| `%` | arithmetic | binary | [not yet decided] | [not yet decided] |
+| `<` | comparison | binary | [not yet decided] | [not yet decided] |
+| `<=` | comparison | binary | [not yet decided] | [not yet decided] |
+| `=` | assignment | binary | [not yet decided] | [not yet decided] |
+| `==` | comparison | binary | [not yet decided] | [not yet decided] |
+| `!` | logical | unary | [not yet decided] | [not yet decided] |
+| `!=` | comparison | binary | [not yet decided] | [not yet decided] |
 
 
 ### Literals
