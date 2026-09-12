@@ -4,6 +4,7 @@
 use crate::token::Token;
 use crate::token_type::{Literal, TokenType};
 
+
 pub struct Scanner {
     source: Vec<char>,
     tokens: Vec<Token>,
@@ -97,6 +98,8 @@ impl Scanner {
         }
     }
 
+    // helper method to scan operators that may be 
+    // single or double character tokens
     fn scan_operator(&mut self, first: char) {
         let token_type = match (first, self.match_char('=')) {
             ('<', true) => TokenType::LessEqual,
@@ -109,6 +112,22 @@ impl Scanner {
         };
 
         self.add_token(token_type, Literal::Nil);
+    }
+
+    fn identifier(&mut self) {
+
+        // scans an identifier or keyword from the source text
+        while self.peek().is_alphanumeric()
+                    || self.peek() == '_' {
+            self.advance();
+        }
+
+        let text = self.source[self.start..self.current]
+            .iter()
+            .collect::<String>();
+
+        
+
     }
 
     // checker if the next character matches the expected character
