@@ -115,7 +115,6 @@ impl Scanner {
     }
 
     fn identifier(&mut self) {
-
         // scans an identifier or keyword from the source text
         while self.peek().is_alphanumeric()
                     || self.peek() == '_' {
@@ -126,8 +125,10 @@ impl Scanner {
             .iter()
             .collect::<String>();
 
-        
+        let token_type = TokenType::from_keyword(&text)
+            .unwrap_or(TokenType::Identifier);
 
+        self.add_token(token_type, Literal::Nil);
     }
 
     // checker if the next character matches the expected character
