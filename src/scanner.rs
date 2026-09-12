@@ -79,30 +79,7 @@ impl Scanner {
             '%' => self.add_token(TokenType::Percent, Literal::Nil),
 
             // Boolean operators
-            '<' => {
-                let token_type = if self.match_char('=') {
-                    TokenType::LessEqual
-                } else {
-                    TokenType::Less
-                };
-                self.add_token(token_type, Literal::Nil);
-            }
-            '=' => {
-                let token_type = if self.match_char('=') {
-                    TokenType::EqualEqual
-                } else {
-                    TokenType::Equal
-                };
-                self.add_token(token_type, Literal::Nil);
-            }
-            '!' => {
-                let token_type = if self.match_char('=') {
-                    TokenType::BangEqual
-                } else {
-                    TokenType::Bang
-                };
-                self.add_token(token_type, Literal::Nil);
-            }
+            '<' | '=' | '!' => self.scan_operator(c),
 
             // Separators
             '.' => self.add_token(TokenType::Dot, Literal::Nil),
@@ -118,6 +95,20 @@ impl Scanner {
                 self.had_error = true;
             }
         }
+    }
+
+    fn scan_operator(&mut self, first: char) {
+        let token_type = match (first, self.match_char('=')) {
+            ('<', true) => TokenType::LessEqual,
+            ('<', false) => TokenType::Less,
+            ('=', true) => TokenType::EqualEqual,
+            ('=', false) => TokenType::Equal,
+            ('!', true) => TokenType::BangEqual,
+            ('!', false) => TokenType::Bang,
+            _ => unreachable!(),
+        };
+
+        self.add_token(token_type, Literal::Nil);
     }
 
     // checker if the next character matches the expected character
