@@ -17,12 +17,24 @@ fn main() {
 
     match args.len() {
         1 => run_prompt(),
+        2 => run_program(&args[1]),
         3 if args[1] == "--tokenize" => run_file(&args[2]),
         _ => {
             eprintln!("Usage: run [--tokenize <path>]");
             std::process::exit(65);
         }
     }
+}
+
+
+fn run_program(path: &str) {
+    fs::read_to_string(path)
+        .unwrap_or_else(|e| {
+            eprintln!("lab0: cannot read '{path}': {e}");
+            std::process::exit(65);
+        });
+
+    println!("Hello, world!");
 }
 
 
