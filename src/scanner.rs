@@ -78,10 +78,31 @@ impl Scanner {
             '/' => self.add_token(TokenType::Slash, Literal::Nil),
             '%' => self.add_token(TokenType::Percent, Literal::Nil),
 
-            // Boolean operators 
-            '<' => self.add_token(TokenType::Less, Literal::Nil),
-            '=' => self.add_token(TokenType::Equal, Literal::Nil),
-            '!' => self.add_token(TokenType::Bang, Literal::Nil),
+            // Boolean operators
+            '<' => {
+                let token_type = if self.match_char('=') {
+                    TokenType::LessEqual
+                } else {
+                    TokenType::Less
+                };
+                self.add_token(token_type, Literal::Nil);
+            }
+            '=' => {
+                let token_type = if self.match_char('=') {
+                    TokenType::EqualEqual
+                } else {
+                    TokenType::Equal
+                };
+                self.add_token(token_type, Literal::Nil);
+            }
+            '!' => {
+                let token_type = if self.match_char('=') {
+                    TokenType::BangEqual
+                } else {
+                    TokenType::Bang
+                };
+                self.add_token(token_type, Literal::Nil);
+            }
 
             // Separators
             '.' => self.add_token(TokenType::Dot, Literal::Nil),
