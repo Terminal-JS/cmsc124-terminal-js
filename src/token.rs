@@ -1,7 +1,8 @@
 // [FILENAME]:  token.rs
 // [DESC]:      houses the Token struct
 
-// import from token_type.rs
+// imports
+use std::fmt;   // format module
 use crate::token_type::{Literal, TokenType};   // access TokenType and Literal enums
 
 #[derive(Debug, Clone)]
@@ -50,3 +51,16 @@ impl Token {
     }   
 
 }
+
+impl fmt::Display for Token {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            let literal_str = match &self.literal {
+                Literal::Number(n) => format!("{:?}", n),
+                Literal::Str(s)    => s.clone(),
+                Literal::Nil       => "null".to_string(),
+            };
+
+            write!(f, "Token(type={:?}, lexeme={}, literal={}, line={})",
+                self.token_type, self.lexeme, literal_str, self.line)
+        }
+    }

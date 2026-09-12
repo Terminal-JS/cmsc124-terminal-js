@@ -1,0 +1,5 @@
+{
+    "ext": ".rs",
+    "flag": "--tokenize",
+    "mode": "sidecar"
+}
