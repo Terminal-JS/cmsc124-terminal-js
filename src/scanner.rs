@@ -134,6 +134,30 @@ impl Scanner {
         self.add_token(token_type, Literal::Nil);
     }
 
+    fn number(&mut self) {
+        while self.peek().is_digit(10) {
+            self.advance();
+        }
+
+        if self.peek() == '.' && self.peek_next().is_digit(10) {
+            self.advance(); // consume .
+
+            while self.peek().is_digit(10) {
+                self.advance();
+            }
+        }
+
+        let text: String = self.source[self.start..self.current]
+            .iter()
+            .collect();
+
+        let value: f64 = text
+            .parse()
+            .expect(&format!("invalid number literal: {:?}", text));
+
+        self.add_token(TokenType::Number, Literal::Number(value));
+    }
+
     // checker if the next character matches the expected character
     fn match_char(&mut self, expected: char) -> bool {
         if self.is_at_end() || self.source[self.current] != expected {
