@@ -87,6 +87,7 @@ impl Scanner {
             ',' => self.add_token(TokenType::Comma, Literal::Nil),
 
             // Literals
+            '"' => self.scan_string(),
             c if c.is_digit(10) => self.number(),
 
             // Identifiers and keywords
@@ -173,6 +174,28 @@ impl Scanner {
             .expect(&format!("invalid number literal: {:?}", text));
 
         self.add_token(TokenType::Number, Literal::Number(value));
+    }
+
+    fn scan_string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            eprintln!("[line {}] Error: Unterminated string.", self.line);
+            self.had_error = true;
+            return;
+        }
+
+        self.advance(); // closing quote
+
+        let value: String = self.source[self.start + 1..self.current - 1]
+            .iter()
+            .collect();
+        self.add_token(TokenType::String, Literal::Str(value));
     }
 
     // checker if the next character matches the expected character
