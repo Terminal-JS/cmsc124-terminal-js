@@ -76,7 +76,7 @@ impl Scanner {
             '+' => self.add_token(TokenType::Plus, Literal::Nil),
             '-' => self.add_token(TokenType::Minus, Literal::Nil),
             '*' => self.add_token(TokenType::Star, Literal::Nil),
-            '/' => self.add_token(TokenType::Slash, Literal::Nil),
+            '/' => self.scan_slash(),
             '%' => self.add_token(TokenType::Percent, Literal::Nil),
 
             // Boolean operators
@@ -115,6 +115,20 @@ impl Scanner {
         };
 
         self.add_token(token_type, Literal::Nil);
+    }
+
+    // handles '/' after it's already been consumed by advance() in scan_token.
+    // disambiguates ordinary division from a "//" line comment by looking
+    // one character ahead.
+    fn scan_slash(&mut self) {
+        if self.match_char('/') {
+            // no token is added here
+            while self.peek() != '\n' && !self.is_at_end() {
+                self.advance();
+            }
+        } else {
+            self.add_token(TokenType::Slash, Literal::Nil);
+        }
     }
 
     fn identifier(&mut self) {
@@ -202,4 +216,35 @@ impl Scanner {
         self.tokens.push(Token::new(token_type, text, literal, self.line));
     }
 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Scanner;
+    use crate::token_type::TokenType;
+
+    #[test]
+    fn skips_line_comments_and_counts_their_newline() {
+        let mut scanner = Scanner::new("var first // ignored\nvar second".to_string());
+        let tokens = scanner.scan_tokens();
+
+        assert_eq!(tokens[0].token_type(), TokenType::Var);
+        assert_eq!(tokens[0].line(), 1);
+        assert_eq!(tokens[1].token_type(), TokenType::Identifier);
+        assert_eq!(tokens[1].lexeme(), "first");
+        assert_eq!(tokens[1].line(), 1);
+        assert_eq!(tokens[2].token_type(), TokenType::Var);
+        assert_eq!(tokens[2].line(), 2);
+        assert_eq!(tokens[3].lexeme(), "second");
+        assert_eq!(tokens[3].line(), 2);
+    }
+
+    #[test]
+    fn keeps_a_single_slash_as_division() {
+        let mut scanner = Scanner::new("a / b".to_string());
+        let tokens = scanner.scan_tokens();
+
+        assert_eq!(tokens[1].token_type(), TokenType::Slash);
+        assert_eq!(tokens[1].lexeme(), "/");
+    }
 }
