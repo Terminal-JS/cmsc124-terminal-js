@@ -71,5 +71,5 @@ impl TokenType {
 pub enum Literal {
     Number(f64),
     Str(String),  
-    Nil,
+    None,
 }

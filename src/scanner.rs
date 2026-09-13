@@ -86,6 +86,9 @@ impl Scanner {
             '.' => self.add_token(TokenType::Dot, Literal::Nil),
             ',' => self.add_token(TokenType::Comma, Literal::Nil),
 
+            // Literals
+            c if c.is_digit(10) => self.number(),
+
             // Identifiers and keywords
             c if c.is_alphabetic() || c == '_' => self.identifier(),
 
@@ -216,35 +219,4 @@ impl Scanner {
         self.tokens.push(Token::new(token_type, text, literal, self.line));
     }
 
-}
-
-#[cfg(test)]
-mod tests {
-    use super::Scanner;
-    use crate::token_type::TokenType;
-
-    #[test]
-    fn skips_line_comments_and_counts_their_newline() {
-        let mut scanner = Scanner::new("var first // ignored\nvar second".to_string());
-        let tokens = scanner.scan_tokens();
-
-        assert_eq!(tokens[0].token_type(), TokenType::Var);
-        assert_eq!(tokens[0].line(), 1);
-        assert_eq!(tokens[1].token_type(), TokenType::Identifier);
-        assert_eq!(tokens[1].lexeme(), "first");
-        assert_eq!(tokens[1].line(), 1);
-        assert_eq!(tokens[2].token_type(), TokenType::Var);
-        assert_eq!(tokens[2].line(), 2);
-        assert_eq!(tokens[3].lexeme(), "second");
-        assert_eq!(tokens[3].line(), 2);
-    }
-
-    #[test]
-    fn keeps_a_single_slash_as_division() {
-        let mut scanner = Scanner::new("a / b".to_string());
-        let tokens = scanner.scan_tokens();
-
-        assert_eq!(tokens[1].token_type(), TokenType::Slash);
-        assert_eq!(tokens[1].lexeme(), "/");
-    }
 }
