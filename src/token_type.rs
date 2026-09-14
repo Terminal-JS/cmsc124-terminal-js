@@ -1,6 +1,8 @@
 // [FILENAME]: token_types.rs
 // [DESC]:     houses an enum that contains our language's token types
 
+use std::fmt;
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenType {
     // grouping symbols
@@ -65,8 +67,6 @@ impl fmt::Display for TokenType {
             TokenType::Percent => "PERCENT",
             TokenType::Less => "LESS",
             TokenType::LessEqual => "LESS_EQUAL",
-            TokenType::Greater => "GREATER",
-            TokenType::GreaterEqual => "GREATER_EQUAL",
             TokenType::Equal => "EQUAL",
             TokenType::EqualEqual => "EQUAL_EQUAL",
             TokenType::Bang => "BANG",
@@ -86,6 +86,6 @@ impl fmt::Display for TokenType {
             TokenType::Number => "NUMBER",
             TokenType::Eof => "EOF",
         };
-        write!(f, "{name}");
+        write!(f, "{name}")
     }
 }
