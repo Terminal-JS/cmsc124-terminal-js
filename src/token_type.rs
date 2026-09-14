@@ -51,6 +51,22 @@ pub enum TokenType {
     Eof,
 }
 
+impl TokenType {
+    pub fn from_keyword(text: &str) -> Option<Self> {
+        match text {
+            "var" => Some(Self::Var),
+            "if" => Some(Self::If),
+            "else" => Some(Self::Else),
+            "while" => Some(Self::While),
+            "print" => Some(Self::Print),
+            "true" => Some(Self::True),
+            "false" => Some(Self::False),
+            "nil" => Some(Self::Nil),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
     Number(f64),

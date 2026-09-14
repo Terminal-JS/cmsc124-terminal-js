@@ -4,6 +4,7 @@
 use crate::token::Token;
 use crate::token_type::{Literal, TokenType};
 
+
 pub struct Scanner {
     source: Vec<char>,
     tokens: Vec<Token>,
@@ -75,17 +76,22 @@ impl Scanner {
             '+' => self.add_token(TokenType::Plus, Literal::Nil),
             '-' => self.add_token(TokenType::Minus, Literal::Nil),
             '*' => self.add_token(TokenType::Star, Literal::Nil),
-            '/' => self.add_token(TokenType::Slash, Literal::Nil),
+            '/' => self.scan_slash(),
             '%' => self.add_token(TokenType::Percent, Literal::Nil),
 
-            // Boolean operators 
-            '<' => self.add_token(TokenType::Less, Literal::Nil),
-            '=' => self.add_token(TokenType::Equal, Literal::Nil),
-            '!' => self.add_token(TokenType::Bang, Literal::Nil),
+            // Boolean operators
+            '<' | '=' | '!' => self.scan_operator(c),
 
             // Separators
             '.' => self.add_token(TokenType::Dot, Literal::Nil),
             ',' => self.add_token(TokenType::Comma, Literal::Nil),
+
+            // Literals
+            '"' => self.scan_string(),
+            c if c.is_digit(10) => self.number(),
+
+            // Identifiers and keywords
+            c if c.is_alphabetic() || c == '_' => self.identifier(),
 
             // Ignore whitespace
             ' ' | '\r' | '\t' => {}
@@ -97,6 +103,99 @@ impl Scanner {
                 self.had_error = true;
             }
         }
+    }
+
+    // helper method to scan operators that may be 
+    // single or double character tokens
+    fn scan_operator(&mut self, first: char) {
+        let token_type = match (first, self.match_char('=')) {
+            ('<', true) => TokenType::LessEqual,
+            ('<', false) => TokenType::Less,
+            ('=', true) => TokenType::EqualEqual,
+            ('=', false) => TokenType::Equal,
+            ('!', true) => TokenType::BangEqual,
+            ('!', false) => TokenType::Bang,
+            _ => unreachable!(),
+        };
+
+        self.add_token(token_type, Literal::Nil);
+    }
+
+    // handles '/' after it's already been consumed by advance() in scan_token.
+    // disambiguates ordinary division from a "//" line comment by looking
+    // one character ahead.
+    fn scan_slash(&mut self) {
+        if self.match_char('/') {
+            // no token is added here
+            while self.peek() != '\n' && !self.is_at_end() {
+                self.advance();
+            }
+        } else {
+            self.add_token(TokenType::Slash, Literal::Nil);
+        }
+    }
+
+    fn identifier(&mut self) {
+        // scans an identifier or keyword from the source text
+        while self.peek().is_alphanumeric()
+                    || self.peek() == '_' {
+            self.advance();
+        }
+
+        let text = self.source[self.start..self.current]
+            .iter()
+            .collect::<String>();
+
+        let token_type = TokenType::from_keyword(&text)
+            .unwrap_or(TokenType::Identifier);
+
+        self.add_token(token_type, Literal::Nil);
+    }
+
+    fn number(&mut self) {
+        while self.peek().is_digit(10) {
+            self.advance();
+        }
+
+        if self.peek() == '.' && self.peek_next().is_digit(10) {
+            self.advance(); // consume .
+
+            while self.peek().is_digit(10) {
+                self.advance();
+            }
+        }
+
+        let text: String = self.source[self.start..self.current]
+            .iter()
+            .collect();
+
+        let value: f64 = text
+            .parse()
+            .expect(&format!("invalid number literal: {:?}", text));
+
+        self.add_token(TokenType::Number, Literal::Number(value));
+    }
+
+    fn scan_string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            eprintln!("[line {}] Error: Unterminated string.", self.line);
+            self.had_error = true;
+            return;
+        }
+
+        self.advance(); // closing quote
+
+        let value: String = self.source[self.start + 1..self.current - 1]
+            .iter()
+            .collect();
+        self.add_token(TokenType::String, Literal::Str(value));
     }
 
     // checker if the next character matches the expected character
@@ -122,6 +221,15 @@ impl Scanner {
             return '\0';
         }
         self.source[self.current]
+    }
+
+    fn peek_next(&self) -> char {
+        // reads the character one past current
+        if self.current + 1 >= self.source.len() {
+            '\0'
+        } else {
+            self.source[self.current + 1]
+        }
     }
 
     fn add_token(&mut self, token_type: TokenType, literal: Literal) {
