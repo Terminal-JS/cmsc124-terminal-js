@@ -74,6 +74,13 @@ fn run_prompt() {
             break;  // EOF
         }
 
+        if line.ends_with('\n') {
+            line.pop();
+            if line.ends_with('\r') {
+                line.pop();
+            }
+        }
+
         run(line);
     }
 }
