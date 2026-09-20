@@ -72,8 +72,8 @@ impl fmt::Display for TokenType {
         let name = match self {
             TokenType::LeftParen  => "LEFT_PAREN",
             TokenType::RightParen => "RIGHT_PAREN",
-            TokenType::LeftBrace  => "LEFT_PAREN",
-            TokenType::RightBrace => "RIGHT_PAREN",
+            TokenType::LeftBrace  => "LEFT_BRACE",
+            TokenType::RightBrace => "RIGHT_BRACE",
             TokenType::LeftBracket => "LEFT_BRACKET",
             TokenType::RightBracket => "RIGHT_BRACKET",
             TokenType::Plus => "PLUS",
