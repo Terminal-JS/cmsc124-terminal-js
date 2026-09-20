@@ -34,7 +34,14 @@ impl Token {
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let literal_str = match &self.literal {
-            Literal::Number(n) => format!("{:?}", n),
+            // drops .0 when the value is an integer
+            Literal::Number(n) => {
+                if n.fract() == 0.0 {
+                    format!("{}", *n as i64)
+                } else {
+                    format!("{}", n)
+                }
+            },
             Literal::Str(s)    => s.clone(),
             Literal::Nil       => "null".to_string(),
         };

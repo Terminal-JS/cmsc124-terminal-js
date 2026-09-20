@@ -87,11 +87,14 @@ fn run(source: String) -> bool {
 
 fn run_at_line(source: String, line: usize) -> bool {
     let mut scanner = Scanner::new_at_line(source, line); // passes source to scanner constructor
-    let tokens = scanner.scan_tokens();
+    let tokens = scanner.scan_tokens().clone();
+    let had_error = scanner.had_error();
 
-    for token in tokens {
-        println!("{}", token);
+    if !had_error {
+        for token in &tokens {
+            println!("{}", token);          // ② only print if there was NO error
+        }
     }
 
-    scanner.had_error()
+    had_error
 }
