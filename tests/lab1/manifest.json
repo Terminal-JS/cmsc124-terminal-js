@@ -1,5 +1,5 @@
 {
-    "ext": ".rs",
+    "ext": ".mylang",
     "flag": "--tokenize",
     "mode": "sidecar"
 }
