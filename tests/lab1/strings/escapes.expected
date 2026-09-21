@@ -1,0 +1,11 @@
+Token(type=PRINT, lexeme=print, literal=null, line=1)
+Token(type=STRING, lexeme="Hello\nWorld", literal=Hello
+World, line=1)
+Token(type=PRINT, lexeme=print, literal=null, line=2)
+Token(type=STRING, lexeme="Tab\tSeparated", literal=Tab	Separated, line=2)
+Token(type=PRINT, lexeme=print, literal=null, line=3)
+Token(type=STRING, lexeme="Quote: \"Suki\"", literal=Quote: "Suki", line=3)
+Token(type=PRINT, lexeme=print, literal=null, line=4)
+Token(type=STRING, lexeme="Backslash: \\", literal=Backslash: \, line=4)
+Token(type=IDENTIFIER, lexeme=EOF, literal=null, line=5)
+Token(type=EOF, lexeme=, literal=null, line=5)

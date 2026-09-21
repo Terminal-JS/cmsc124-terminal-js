@@ -1,10 +1,5 @@
-Token(type=VAR, lexeme=var, literal=null, line=1)
-Token(type=IDENTIFIER, lexeme=normal, literal=null, line=1)
-Token(type=EQUAL, lexeme==, literal=null, line=1)
-Token(type=STRING, lexeme="hello world", literal=hello world, line=1)
-Token(type=VAR, lexeme=var, literal=null, line=2)
-Token(type=IDENTIFIER, lexeme=escaped, literal=null, line=2)
-Token(type=EQUAL, lexeme==, literal=null, line=2)
-Token(type=STRING, lexeme="hello \"world\" \\ line\n", literal=hello "world" \ line
-, line=2)
-Token(type=EOF, lexeme=, literal=null, line=2)
+print "Hello\nWorld"
+print "Tab\tSeparated"
+print "Quote: \"Suki\""
+print "Backslash: \\"
+EOF
