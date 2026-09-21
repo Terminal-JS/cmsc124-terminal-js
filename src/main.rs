@@ -54,6 +54,8 @@ fn run_file(path: &str) {
 
 
 fn run_prompt() {
+    let mut line_number = 1;
+
     loop {
         // flushes cursor on the same
         // line as the input indicator
@@ -73,18 +75,26 @@ fn run_prompt() {
             break;  // EOF
         }
 
-        run(line);
+        run_at_line(line, line_number);
+        line_number += 1;
     }
 }
 
 
 fn run(source: String) -> bool {
-    let mut scanner = Scanner::new(source); // passes source to scanner constructor
-    let tokens = scanner.scan_tokens();
+    run_at_line(source, 1)
+}
 
-    for token in tokens {
-        println!("{}", token);
+fn run_at_line(source: String, line: usize) -> bool {
+    let mut scanner = Scanner::new_at_line(source, line); // passes source to scanner constructor
+    let tokens = scanner.scan_tokens().clone();
+    let had_error = scanner.had_error();
+
+    if !had_error {
+        for token in &tokens {
+            println!("{}", token);          // ② only print if there was NO error
+        }
     }
 
-    scanner.had_error()
+    had_error
 }

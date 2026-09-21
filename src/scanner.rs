@@ -17,13 +17,17 @@ pub struct Scanner {
 impl Scanner {
     // constructor that creates and returns a new Scanner
     pub fn new(source: String) -> Self {
+        Self::new_at_line(source, 1)
+    }
+
+    pub fn new_at_line(source: String, line: usize) -> Self {
         Scanner {
             // String -> Vec<char> for char-by-char processing
             source: source.chars().collect(),
             tokens: Vec::new(),
             start: 0,
             current: 0,
-            line: 1,
+            line,
             had_error: false,
         }
     }
@@ -95,7 +99,8 @@ impl Scanner {
 
             // Ignore whitespace
             ' ' | '\r' | '\t' => {}
-            '\n' => self.line += 1,
+            '\n' if !self.is_at_end() => self.line += 1,
+            '\n' => {}
 
             // Unrecognized character
             _ => {
