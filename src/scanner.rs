@@ -176,25 +176,59 @@ impl Scanner {
         self.add_token(TokenType::Number, Literal::Number(value));
     }
 
+
     fn scan_string(&mut self) {
+        let mut value = String::new();
+
         while self.peek() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line += 1;
             }
-            self.advance();
+
+            let c = self.advance();
+
+            if c == '\r' {
+                continue;
+            }
+
+            if c == '\\' {
+                if self.is_at_end() {
+                    eprintln!("[line {}] Error: Unterminated string.", self.line);
+                    self.had_error = true;
+                    return;
+                }
+
+                let next = self.advance();
+
+                if next == '\n' {
+                    self.line += 1;
+                }
+
+                match next {
+                    'n'  => { value.push('\n'); }
+                    't'  => { value.push('\t'); }
+                    '"'  => { value.push('"');  }
+                    '\\' => { value.push('\\'); }
+                    _    => {
+                        eprintln!("[line {}] Error: Unknown escape sequence '\\{}'.", self.line, next);
+                        self.had_error = true;
+                        value.push(c);
+                        value.push(next);
+                    }
+                }
+            } else {
+                value.push(c);
+            }
         }
 
         if self.is_at_end() {
-            eprintln!("[line {}] Error: Unterminated string.", self.line);
+            eprintln!("[line {}] Error: Unterminated string", self.line);
             self.had_error = true;
             return;
         }
 
         self.advance(); // closing quote
 
-        let value: String = self.source[self.start + 1..self.current - 1]
-            .iter()
-            .collect();
         self.add_token(TokenType::String, Literal::Str(value));
     }
 
