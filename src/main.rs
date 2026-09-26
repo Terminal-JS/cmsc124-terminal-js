@@ -14,11 +14,12 @@ pub mod scanner;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    const TOKENIZE: &str = "--tokenize";
 
     match args.len() {
         1 => run_prompt(),
         2 => run_program(&args[1]),
-        3 if args[1] == "--tokenize" => run_file(&args[2]),
+        3 if args[1] == TOKENIZE => run_file(&args[2]),
         _ => {
             eprintln!("Usage: run [--tokenize <path>]");
             std::process::exit(65);
@@ -42,7 +43,7 @@ fn run_file(path: &str) {
     let source = fs::read_to_string(path)
         .unwrap_or_else(|e| {
             eprintln!("lab1: cannot read '{path}': {e}");
-            std::process::exit(65); // Exit Code 74: I/O file error
+            std::process::exit(65);
         });
     
     let had_error = run(source);
