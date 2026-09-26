@@ -1,9 +1,9 @@
-# [Language name]
+# SukiScript
 
 ## Creators
 
-- [Seth Leander L. Caballero] Sesilyo
-- [Justin B. Lauricio] llaollao902
+- [Seth Leander L. Caballero] &nbsp;&nbsp;- Sesilyo
+- [Justin B. Lauricio] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- llaollao902
 
 ## Overview
 
@@ -36,37 +36,44 @@ Exit codes: `0` for  Clean, error-free run, `65` for Input rejected before real 
 
 ## Lexical structure
 
+
 ### Keywords
 
-
-| Keyword | Purpose |
+| Keyword     | Purpose |
 |---|---|
-| `var` | Declares a variable |
-| `if` | Begins a conditional branch |
-| `else` | Alternate branch for `if` |
-| `while` | Loop while a condition holds |
-| `print` | Outputs a value |
-| `true` | Boolean literal, true |
-| `false` | Boolean literal, false |
-| `nil` | Absence of a value |
-
+| `product`   | Declares an item sold by the store |
+| `price`     | Introduces a product's selling price |
+| `stock`     | Refers to a product's available quantity |
+| `sell`      | Records a product sale |
+| `quantity`  | Introduces the number of units involved |
+| `restock`   | Adds units to an existing product's stock |
+| `expense`   | Records an operating expense |
+| `cost`      | Introduces a monetary cost |
+| `calculate` | Computes a derived total |
+| `revenue`   | Refers to total income from sales |
+| `profit`    | Refers to revenue minus costs and expenses |
+| `show`      | Prints a value or message |
+| `when`      | Starts a conditional block |
+| `otherwise` | Starts an alternative conditional branch |
+| `true`      | Boolean literal, true |
+| `false`     | Boolean literal, false |
+| `nil`       | Absence of a value |
 
 ### Operators
 
-
-| Operator | Category | Operands | Associativity | Precedence |
+| Operator | Category   | Operands | Associativity | Precedence |
 |---|---|---|---|---|
-| `+` | arithmetic | binary | [not yet decided] | [not yet decided] |
-| `-` | arithmetic | binary | [not yet decided] | [not yet decided] |
-| `*` | arithmetic | binary | [not yet decided] | [not yet decided] |
-| `/` | arithmetic | binary | [not yet decided] | [not yet decided] |
-| `%` | arithmetic | binary | [not yet decided] | [not yet decided] |
-| `<` | comparison | binary | [not yet decided] | [not yet decided] |
-| `<=` | comparison | binary | [not yet decided] | [not yet decided] |
-| `=` | assignment | binary | [not yet decided] | [not yet decided] |
-| `==` | comparison | binary | [not yet decided] | [not yet decided] |
-| `!` | logical | unary | [not yet decided] | [not yet decided] |
-| `!=` | comparison | binary | [not yet decided] | [not yet decided] |
+| `<`      | comparison | binary   | left | 2 |
+| `<=`     | comparison | binary   | left | 2 |
+| `>`      | comparison | binary   | left | 2 |
+| `>=`     | comparison | binary   | left | 2 |
+| `==`     | comparison | binary   | left | 2 |
+| `!=`     | comparison | binary   | left | 2 |
+| `+`      | arithmetic | binary   | left | 3 |
+| `-`      | arithmetic | binary   | left | 3 |
+| `*`      | arithmetic | binary   | left | 4 |
+| `/`      | arithmetic | binary   | left | 4 |
+| `-`      | arithmetic | unary    | right | 5 |
 
 
 ### Literals
