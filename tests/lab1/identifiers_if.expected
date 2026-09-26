@@ -1,0 +1,3 @@
+Token(type=IF, lexeme=if, literal=null, line=1)
+Token(type=IDENTIFIER, lexeme=iffy, literal=null, line=1)
+Token(type=EOF, lexeme=, literal=null, line=1)
