@@ -1,3 +1,0 @@
-var single = "hello"
-var sentence = "The quick brown fox jumps over 123 lazy dogs!"
-var empty_str = ""

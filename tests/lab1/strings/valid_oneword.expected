@@ -1,0 +1,5 @@
+Token(type=VAR, lexeme=var, literal=null, line=1)
+Token(type=IDENTIFIER, lexeme=single, literal=null, line=1)
+Token(type=EQUAL, lexeme==, literal=null, line=1)
+Token(type=STRING, lexeme="hello", literal=hello, line=1)
+Token(type=EOF, lexeme=, literal=null, line=2)

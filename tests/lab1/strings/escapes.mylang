@@ -1,2 +1,5 @@
-var normal = "hello world"
-var escaped = "hello \"world\" \\ line\n"
+print "Hello\nWorld"
+print "Tab\tSeparated"
+print "Quote: \"Suki\""
+print "Backslash: \\"
+EOF

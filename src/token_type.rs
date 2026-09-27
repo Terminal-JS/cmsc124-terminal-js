@@ -13,7 +13,7 @@ pub enum TokenType {
     // arithmetic operators
     Plus, Minus,
     Star,       // multiplication
-    Slash,     // forward slash for division
+    Slash,      // forward slash for division
     Percent,    // modulo
 
     // boolean operators
@@ -24,21 +24,32 @@ pub enum TokenType {
 
     // separators
     Dot, Comma,
-    
-    // keywords
-    Var,
-    If, Else,
-    While,
-    Print,
+
+    // SukiScript keywords
+    Product,
+    Price,
+    Stock,
+    Sell,
+    Quantity,
+    Restock,
+    Expense,
+    Cost,
+    Calculate,
+    Revenue,
+    Profit,
+    Show,
+    Check,
+    Else,
+
+    // kept from before — used if conditionals need booleans, or literal nothing
     True, False,
     Nil,    // or null, from Latin "nihil"
 
     // literals
-    Identifier, // variable/function names
+    Identifier, // product/customer names
     String,
     Number,
 
-    
     // end of file
     Eof,
 }
@@ -46,11 +57,20 @@ pub enum TokenType {
 impl TokenType {
     pub fn from_keyword(text: &str) -> Option<Self> {
         match text {
-            "var" => Some(Self::Var),
-            "if" => Some(Self::If),
+            "product" => Some(Self::Product),
+            "price" => Some(Self::Price),
+            "stock" => Some(Self::Stock),
+            "sell" => Some(Self::Sell),
+            "quantity" => Some(Self::Quantity),
+            "restock" => Some(Self::Restock),
+            "expense" => Some(Self::Expense),
+            "cost" => Some(Self::Cost),
+            "calculate" => Some(Self::Calculate),
+            "revenue" => Some(Self::Revenue),
+            "profit" => Some(Self::Profit),
+            "show" => Some(Self::Show),
+            "check" => Some(Self::Check),
             "else" => Some(Self::Else),
-            "while" => Some(Self::While),
-            "print" => Some(Self::Print),
             "true" => Some(Self::True),
             "false" => Some(Self::False),
             "nil" => Some(Self::Nil),
@@ -62,17 +82,16 @@ impl TokenType {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Literal {
     Number(f64),
-    Str(String),  
+    Str(String),
     Nil,
 }
-
 
 impl fmt::Display for TokenType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let name = match self {
             TokenType::LeftParen  => "LEFT_PAREN",
             TokenType::RightParen => "RIGHT_PAREN",
-            TokenType::LeftBrace  => "LEFT_BRACE",
+            TokenType::LeftBrace  => "LEFT_BRACE",   
             TokenType::RightBrace => "RIGHT_BRACE",
             TokenType::LeftBracket => "LEFT_BRACKET",
             TokenType::RightBracket => "RIGHT_BRACKET",
@@ -89,11 +108,20 @@ impl fmt::Display for TokenType {
             TokenType::BangEqual => "BANG_EQUAL",
             TokenType::Dot => "DOT",
             TokenType::Comma => "COMMA",
-            TokenType::Var => "VAR",
-            TokenType::If => "IF",
+            TokenType::Product => "PRODUCT",
+            TokenType::Price => "PRICE",
+            TokenType::Stock => "STOCK",
+            TokenType::Sell => "SELL",
+            TokenType::Quantity => "QUANTITY",
+            TokenType::Restock => "RESTOCK",
+            TokenType::Expense => "EXPENSE",
+            TokenType::Cost => "COST",
+            TokenType::Calculate => "CALCULATE",
+            TokenType::Revenue => "REVENUE",
+            TokenType::Profit => "PROFIT",
+            TokenType::Show => "SHOW",
+            TokenType::Check => "CHECK",
             TokenType::Else => "ELSE",
-            TokenType::While => "WHILE",
-            TokenType::Print => "PRINT",
             TokenType::True => "TRUE",
             TokenType::False => "FALSE",
             TokenType::Nil => "NIL",

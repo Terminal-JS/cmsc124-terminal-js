@@ -1,0 +1,2 @@
+Token(type=RESTOCK, lexeme=restock, literal=null, line=1)
+Token(type=EOF, lexeme=, literal=null, line=1)

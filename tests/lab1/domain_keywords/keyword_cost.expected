@@ -1,0 +1,2 @@
+Token(type=COST, lexeme=cost, literal=null, line=1)
+Token(type=EOF, lexeme=, literal=null, line=1)

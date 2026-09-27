@@ -1,0 +1,5 @@
+Token(type=VAR, lexeme=var, literal=null, line=1)
+Token(type=IDENTIFIER, lexeme=sentence, literal=null, line=1)
+Token(type=EQUAL, lexeme==, literal=null, line=1)
+Token(type=STRING, lexeme="The quick brown fox jumps over 123 lazy dogs!", literal=The quick brown fox jumps over 123 lazy dogs!, line=1)
+Token(type=EOF, lexeme=, literal=null, line=1)
