@@ -1,5 +1,5 @@
-print "Hello\nWorld"
-print "Tab\tSeparated"
-print "Quote: \"Suki\""
-print "Backslash: \\"
+show "Hello\nWorld"
+show "Tab\tSeparated"
+show "Quote: \"Suki\""
+show "Backslash: \\"
 EOF
