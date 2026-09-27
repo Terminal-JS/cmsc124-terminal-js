@@ -1,3 +1,0 @@
-Token(type=TRUE, lexeme=true, literal=null, line=1)
-Token(type=FALSE, lexeme=false, literal=null, line=1)
-Token(type=EOF, lexeme=, literal=null, line=1)

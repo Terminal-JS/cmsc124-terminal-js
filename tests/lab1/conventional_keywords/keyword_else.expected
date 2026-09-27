@@ -1,2 +1,0 @@
-Token(type=ELSE, lexeme=else, literal=null, line=1)
-Token(type=EOF, lexeme=, literal=null, line=1)
