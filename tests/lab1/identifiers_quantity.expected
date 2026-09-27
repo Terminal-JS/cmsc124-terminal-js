@@ -1,0 +1,3 @@
+Token(type=QUANTITY, lexeme=quantity, literal=null, line=1)
+Token(type=IDENTIFIER, lexeme=quantitySold, literal=null, line=1)
+Token(type=EOF, lexeme=, literal=null, line=1)
