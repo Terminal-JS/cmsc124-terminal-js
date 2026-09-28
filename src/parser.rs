@@ -47,4 +47,18 @@ impl Parser {
 
     }
 
+    // Helper Functions
+    fn match_any(&mut self, types: &[TokenType]) -> bool {
+        for t in types {
+            if self.check(*t) {
+                self.advance();
+                return true;
+            }
+        }
+        false
+    }
+
+    
+
+
 }
