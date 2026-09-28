@@ -19,6 +19,7 @@ pub enum TokenType {
     // boolean operators
     Less,  LessEqual,
     Equal, EqualEqual,
+    Greater, GreaterEqual,
     Bang,       // '!'
     BangEqual,  // '!='
 
@@ -102,6 +103,8 @@ impl fmt::Display for TokenType {
             TokenType::Percent => "PERCENT",
             TokenType::Less => "LESS",
             TokenType::LessEqual => "LESS_EQUAL",
+            TokenType::Greater => "GREATER",
+            TokenType::GreaterEqual => "GREATER_EQUAL",
             TokenType::Equal => "EQUAL",
             TokenType::EqualEqual => "EQUAL_EQUAL",
             TokenType::Bang => "BANG",
