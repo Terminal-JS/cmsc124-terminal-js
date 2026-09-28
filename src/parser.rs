@@ -87,6 +87,17 @@ impl Parser {
         Ok(expr)
     }
 
+    // unary -> primary
+    fn unary(&mut self) -> ParseResult<Expr> {
+        if self.match_any(&[TokenType::Bang, TokenType::Minus]) {
+            let operator = self.previous().clone();
+            let right = self.unary()?;
+            return Ok(Expr::Unary { operator, right: Box::new(right) });
+        }
+ 
+        self.primary()
+    }
+
     // Helper Functions
 
      fn match_any(&mut self, types: &[TokenType]) -> bool {
