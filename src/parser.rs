@@ -32,11 +32,17 @@ impl Parser {
 
     // equality -> comparison
     fn equality(&mut self) -> ParseResult<Expr> {
+        // left comparison
         let mut expr = self.comparison()?;
- 
+        
+        // checks if it match ( "!=" | "==" )
         while self.match_any(&[TokenType::BangEqual, TokenType::EqualEqual]) {
             let operator = self.previous().clone();
+            
+            // left comparison 
             let right = self.comparison()?;
+
+            // creates BT comparison ( ( "!=" | "==" ) comparison )*
             expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
         }
  
@@ -45,8 +51,10 @@ impl Parser {
 
     // comparison -> term
     fn comparison(&mut self) -> ParseResult<Expr> {
+        // left term
         let mut expr = self.term()?;
- 
+        
+        // checks if match any ( ">" | ">=" | "<" | "<=" )
         while self.match_any(&[
             TokenType::Greater,
             TokenType::GreaterEqual,
@@ -54,7 +62,10 @@ impl Parser {
             TokenType::LessEqual,
         ]) {
             let operator = self.previous().clone();
+            // right term 
             let right = self.term()?;
+
+            // term ( ( ">" | ">=" | "<" | "<=" ) term )*
             expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
         }
  
@@ -63,11 +74,15 @@ impl Parser {
 
     // term -> factor
     fn term(&mut self) -> ParseResult<Expr> {
+        // left factor
         let mut expr = self.factor()?;
- 
+        
+        // checks if matches any ( "-" | "+" )
         while self.match_any(&[TokenType::Minus, TokenType::Plus]) {
             let operator = self.previous().clone();
+            // right factor
             let right = self.factor()?;
+            // factor ( ( "-" | "+" ) factor )*
             expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
         }
  
@@ -76,11 +91,14 @@ impl Parser {
 
     // factor -> unary
     fn factor(&mut self) -> ParseResult<Expr> {
+        // left unary
         let mut expr = self.unary()?;
  
         while self.match_any(&[TokenType::Slash, TokenType::Star]) {
             let operator = self.previous().clone();
+            // right unary
             let right = self.unary()?;
+            // unary ( ( "/" | "*" ) unary )*
             expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
         }
  
@@ -89,13 +107,43 @@ impl Parser {
 
     // unary -> primary
     fn unary(&mut self) -> ParseResult<Expr> {
+        // checks if matches any ( "!" | "-" )
         if self.match_any(&[TokenType::Bang, TokenType::Minus]) {
             let operator = self.previous().clone();
             let right = self.unary()?;
+
+            // ( "!" | "-" ) unary
             return Ok(Expr::Unary { operator, right: Box::new(right) });
         }
- 
+        
+        // ( "!" | "-" ) primary
         self.primary()
+    }
+
+    // primary 
+    fn primary(&mut self) -> ParseResult<Expr> {
+
+        // NUMBER | STRING | "true" | "false" | "nil" 
+        if self.match_any(&[
+            TokenType::Number,
+            TokenType::String,
+            TokenType::False,
+            TokenType::True,
+            TokenType::Nil,
+        ]) {
+            // Expr::Literal wraps the whole token, so we just clone
+            // whatever we matched straight into the node.
+            return Ok(Expr::Literal(self.previous().clone()));
+        }
+        
+        // or another expression
+        if self.match_any(&[TokenType::LeftParen]) {
+            let expr = self.expression()?;
+            self.consume(TokenType::RightParen, "Expect ')' after expression.")?;
+            return Ok(Expr::Grouping(Box::new(expr)));
+        }
+ 
+        Err(self.error(self.peek(), "Expect expression."))
     }
 
     // Helper Functions
