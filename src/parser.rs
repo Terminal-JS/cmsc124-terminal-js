@@ -58,6 +58,20 @@ impl Parser {
         false
     }
 
+    fn advance(&mut self) -> &Token {
+        if !self.is_at_end() {
+            self.current += 1;
+        }
+        self.previous()
+    }
+ 
+    fn is_at_end(&self) -> bool {
+        self.peek().token_type() == TokenType::Eof
+    }
+ 
+    fn peek(&self) -> &Token {
+        &self.tokens[self.current]
+    }
     
 
 
