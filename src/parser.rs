@@ -43,8 +43,22 @@ impl Parser {
         Ok(expr)
     }
 
+    // comparison -> term
     fn comparison(&mut self) -> ParseResult<Expr> {
-
+        let mut expr = self.term()?;
+ 
+        while self.match_any(&[
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual,
+        ]) {
+            let operator = self.previous().clone();
+            let right = self.term()?;
+            expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
+        }
+ 
+        Ok(expr)
     }
 
      fn match_any(&mut self, types: &[TokenType]) -> bool {
