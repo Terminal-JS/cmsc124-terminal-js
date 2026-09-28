@@ -47,8 +47,7 @@ impl Parser {
 
     }
 
-    // Helper Functions
-    fn match_any(&mut self, types: &[TokenType]) -> bool {
+     fn match_any(&mut self, types: &[TokenType]) -> bool {
         for t in types {
             if self.check(*t) {
                 self.advance();
@@ -57,21 +56,21 @@ impl Parser {
         }
         false
     }
-
+ 
     fn consume(&mut self, token_type: TokenType, message: &str) -> ParseResult<&Token> {
         if self.check(token_type) {
             return Ok(self.advance());
         }
         Err(self.error(self.peek(), message))
     }
-
+ 
     fn check(&self, token_type: TokenType) -> bool {
         if self.is_at_end() {
             return false;
         }
         self.peek().token_type() == token_type
     }
-
+ 
     fn advance(&mut self) -> &Token {
         if !self.is_at_end() {
             self.current += 1;
@@ -86,7 +85,23 @@ impl Parser {
     fn peek(&self) -> &Token {
         &self.tokens[self.current]
     }
+ 
+    fn previous(&self) -> &Token {
+        &self.tokens[self.current - 1]
+    }
     
+    fn error(&self, token: &Token, message: &str) -> ParseError {
+        // Report to stderr, exit code 65, per the run contract.
+        // Swap this for your group's actual error-reporting function
+        // once that's wired up.
+        let formatted = if token.token_type() == TokenType::Eof {
+            format!("[line {}] Error at end: {}", token.line(), message)
+        } else {
+            format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
+        };
+        eprintln!("{}", formatted);
+        ParseError { message: formatted }
+    }
 
 
 }
