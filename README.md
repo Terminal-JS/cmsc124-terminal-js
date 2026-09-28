@@ -121,8 +121,16 @@ changelog.]
 ## Grammar
 
 ```
-[Your complete context-free grammar, current as of the latest activity.
-Unambiguous, with precedence and associativity encoded in rule structure.]
+expression → comparison
+comparison → term ( ( "<" | "<=" | ">" | ">=" | "==" | "!=" ) term )*
+term       → factor ( ( "+" | "-" ) factor )*
+factor     → unary ( ( "*" | "/" ) unary )*
+unary      → "-" unary | primary
+primary    → NUMBER | STRING | "true" | "false" | "nil"
+           | "stock" IDENTIFIER
+           | "revenue" | "profit"
+           | IDENTIFIER
+           | "(" expression ")"
 ```
 
 ## Parse output format
