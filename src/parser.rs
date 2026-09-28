@@ -11,3 +11,5 @@ pub struct Parser {
 pub struct ParseError {
     pub message: String,
 }
+
+type ParseResult<T> = Result<T, ParseError>;
