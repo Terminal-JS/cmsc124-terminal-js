@@ -7,6 +7,9 @@ use std::fs;    // filesystem module
 use std::io::{self, Write};
 use scanner::Scanner;
 
+pub mod expr;
+pub mod parser;
+pub mod print_ast;
 pub mod token_type;
 pub mod token;
 pub mod scanner;
@@ -15,13 +18,15 @@ pub mod scanner;
 fn main() {
     let args: Vec<String> = env::args().collect();
     const TOKENIZE: &str = "--tokenize";
+    const PARSE: &str = "--parse";
 
     match args.len() {
         1 => run_prompt(),
         2 => run_program(&args[1]),
         3 if args[1] == TOKENIZE => run_file(&args[2]),
+        3 if args[1] == PARSE => run_parse_file(&args[2]),
         _ => {
-            eprintln!("Usage: run [--tokenize <path>]");
+            eprintln!("Usage: run [--tokenize|--parse <path>]");
             std::process::exit(65);
         }
     }
@@ -50,6 +55,27 @@ fn run_file(path: &str) {
 
     if had_error {
         std::process::exit(65);
+    }
+}
+
+
+fn run_parse_file(path: &str) {
+    let source = fs::read_to_string(path)
+        .unwrap_or_else(|e| {
+            eprintln!("parser: cannot read '{path}': {e}");
+            std::process::exit(65);
+        });
+
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan_tokens().clone();
+    if scanner.had_error() {
+        std::process::exit(65);
+    }
+
+    let mut parser = parser::Parser::new(tokens);
+    match parser.parse() {
+        Ok(expression) => println!("{}", print_ast::print(&expression)),
+        Err(_) => std::process::exit(65),
     }
 }
 
