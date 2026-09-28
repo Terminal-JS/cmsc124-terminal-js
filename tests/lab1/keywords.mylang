@@ -1,3 +1,12 @@
-var if else while print true false nil
-iffy variable
-EOF
+product soda price 25 stock 30
+sell soda quantity 3
+restock soda quantity 12 cost 240
+expense electricity cost 150
+calculate revenue
+calculate profit
+show "Daily profit:"
+check stock soda < 5 {
+	show "Restock soda."
+} else {
+	show "Soda stock is sufficient."
+}
