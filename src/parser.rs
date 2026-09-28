@@ -74,6 +74,19 @@ impl Parser {
         Ok(expr)
     }
 
+    // factor -> unary
+    fn factor(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.unary()?;
+ 
+        while self.match_any(&[TokenType::Slash, TokenType::Star]) {
+            let operator = self.previous().clone();
+            let right = self.unary()?;
+            expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
+        }
+ 
+        Ok(expr)
+    }
+
     // Helper Functions
 
      fn match_any(&mut self, types: &[TokenType]) -> bool {
