@@ -22,11 +22,12 @@ fn main() {
 
     match args.len() {
         1 => run_prompt(),
+        2 if args[1] == PARSE => run_parse_prompt(),
         2 => run_program(&args[1]),
         3 if args[1] == TOKENIZE => run_file(&args[2]),
         3 if args[1] == PARSE => run_parse_file(&args[2]),
         _ => {
-            eprintln!("Usage: run [--tokenize|--parse <path>]");
+            eprintln!("Usage: run [<path> | --tokenize <path> | --parse [<path>]]");
             std::process::exit(65);
         }
     }
@@ -66,16 +67,47 @@ fn run_parse_file(path: &str) {
             std::process::exit(65);
         });
 
-    let mut scanner = Scanner::new(source);
+    if run_parse_at_line(source, 1) {
+        std::process::exit(65);
+    }
+}
+
+
+fn run_parse_prompt() {
+    let mut line_number = 1;
+
+    loop {
+        print!("> ");
+        io::stdout().flush().unwrap();
+
+        let mut line = String::new();
+        let bytes_read = io::stdin().read_line(&mut line).unwrap();
+        if bytes_read == 0 {
+            break;
+        }
+
+        if !line.trim().is_empty() {
+            run_parse_at_line(line, line_number);
+        }
+        line_number += 1;
+    }
+}
+
+
+fn run_parse_at_line(source: String, line: usize) -> bool {
+    let mut scanner = Scanner::new_at_line(source, line);
     let tokens = scanner.scan_tokens().clone();
     if scanner.had_error() {
-        std::process::exit(65);
+        return true;
     }
 
     let mut parser = parser::Parser::new(tokens);
     match parser.parse() {
-        Ok(expression) => println!("{}", print_ast::print(&expression)),
-        Err(_) => std::process::exit(65),
+        Ok(expression) => {
+            println!("{}", print_ast::print(&expression));
+            false
+        }
+        Err(_) => true,
     }
 }
 
