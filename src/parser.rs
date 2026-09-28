@@ -61,6 +61,21 @@ impl Parser {
         Ok(expr)
     }
 
+    // term -> factor
+    fn term(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.factor()?;
+ 
+        while self.match_any(&[TokenType::Minus, TokenType::Plus]) {
+            let operator = self.previous().clone();
+            let right = self.factor()?;
+            expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
+        }
+ 
+        Ok(expr)
+    }
+
+    // Helper Functions
+
      fn match_any(&mut self, types: &[TokenType]) -> bool {
         for t in types {
             if self.check(*t) {
