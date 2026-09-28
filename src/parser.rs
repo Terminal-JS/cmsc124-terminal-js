@@ -58,6 +58,13 @@ impl Parser {
         false
     }
 
+    fn consume(&mut self, token_type: TokenType, message: &str) -> ParseResult<&Token> {
+        if self.check(token_type) {
+            return Ok(self.advance());
+        }
+        Err(self.error(self.peek(), message))
+    }
+
     fn check(&self, token_type: TokenType) -> bool {
         if self.is_at_end() {
             return false;
