@@ -30,8 +30,21 @@ impl Parser {
         self.equality()
     }
 
+    // equality -> comparison
     fn equality(&mut self) -> ParseResult<Expr> {
-        
+        let mut expr = self.comparison()?;
+ 
+        while self.match_any(&[TokenType::BangEqual, TokenType::EqualEqual]) {
+            let operator = self.previous().clone();
+            let right = self.comparison()?;
+            expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
+        }
+ 
+        Ok(expr)
+    }
+
+    fn comparison(&mut self) -> ParseResult<Expr> {
+
     }
 
 }
