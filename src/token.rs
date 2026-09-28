@@ -29,6 +29,22 @@ impl Token {
             line,
         }
     }
+
+    pub fn token_type(&self) -> TokenType {
+        self.token_type
+    }
+
+    pub fn lexeme(&self) -> &str {
+        &self.lexeme
+    }
+
+    pub fn literal(&self) -> &Literal {
+        &self.literal
+    }
+
+    pub fn line(&self) -> usize {
+        self.line
+    }
 }
 
 impl fmt::Display for Token {

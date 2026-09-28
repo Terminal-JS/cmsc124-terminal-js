@@ -121,8 +121,29 @@ changelog.]
 ## Grammar
 
 ```
-[Your complete context-free grammar, current as of the latest activity.
-Unambiguous, with precedence and associativity encoded in rule structure.]
+program     -> statement*
+statement   -> product | sell | restock | expense
+             | calculate | show | check
+
+product     -> "product" IDENT "price" expression "stock" expression
+sell        -> "sell" IDENT "quantity" expression
+restock     -> "restock" IDENT "quantity" expression "cost" expression
+expense     -> "expense" IDENT "cost" expression
+calculate   -> "calculate" ( "revenue" | "profit" )
+show        -> "show" expression
+check       -> "check" expression block ( "else" block )?
+block       -> "{" statement* "}"
+
+expression  -> equality
+equality    -> comparison ( ( "!=" | "==" ) comparison )*
+comparison  -> term ( ( ">" | ">=" | "<" | "<=" ) term )*
+term        -> factor ( ( "-" | "+" ) factor )*
+factor      -> unary ( ( "/" | "*" ) unary )*
+unary       -> ( "!" | "-" ) unary | primary
+primary     -> NUMBER | STRING | "true" | "false" | "nil"
+             | "stock" IDENT | "price" IDENT
+             | "revenue" | "profit"
+             | "(" expression ")"
 ```
 
 ## Parse output format
