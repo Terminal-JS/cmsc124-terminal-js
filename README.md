@@ -23,7 +23,8 @@ To be specified.
 |---|---|
 | `./run <file>` | [Executes a program. Available from Lab 4.] |
 | `./run --tokenize <file>` | [Prints the token stream.] |
-| `./run --parse <file>` | [Prints the parsed tree.] |
+| `./run --parse` | [Starts an interactive expression parser.] |
+| `./run --parse <file>` | [Prints the parsed tree from a file.] |
 | `./run --eval <file>` | [Evaluates each expression and prints its value.] |
 | `./run` | [Starts the REPL.] |
 
@@ -125,10 +126,10 @@ program     -> statement*
 statement   -> product | sell | restock | expense
              | calculate | show | check
 
-product     -> "product" IDENT "price" expression "stock" expression
-sell        -> "sell" IDENT "quantity" expression
-restock     -> "restock" IDENT "quantity" expression "cost" expression
-expense     -> "expense" IDENT "cost" expression
+product     -> "product" IDENTIFIER "price" expression "stock" expression
+sell        -> "sell" IDENTIFIER "quantity" expression
+restock     -> "restock" IDENTIFIER "quantity" expression "cost" expression
+expense     -> "expense" IDENTIFIER "cost" expression
 calculate   -> "calculate" ( "revenue" | "profit" )
 show        -> "show" expression
 check       -> "check" expression block ( "else" block )?
@@ -141,7 +142,7 @@ term        -> factor ( ( "-" | "+" ) factor )*
 factor      -> unary ( ( "/" | "*" ) unary )*
 unary       -> ( "!" | "-" ) unary | primary
 primary     -> NUMBER | STRING | "true" | "false" | "nil"
-             | "stock" IDENT | "price" IDENT
+             | "stock" IDENT | "price" IDENTIFIER
              | "revenue" | "profit"
              | "(" expression ")"
 ```
