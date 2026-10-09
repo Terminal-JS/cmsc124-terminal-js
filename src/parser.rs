@@ -153,8 +153,16 @@ impl Parser {
                 .consume(TokenType::Identifier, "Expect product name after 'price'.")?
                 .clone();
             return Ok(Expr::Price(name));
+        } 
+
+        // "revenue" | "profit"
+        if self.match_any(&[TokenType::Revenue]) {
+            return Ok(Expr::Revenue(self.previous().clone()));
         }
-        
+
+        if self.match_any(&[TokenType::Profit]) {
+            return Ok(Expr::Profit(self.previous().clone()));
+        }
 
         // or another expression
         if self.match_any(&[TokenType::LeftParen]) {
