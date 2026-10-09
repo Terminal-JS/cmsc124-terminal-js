@@ -2,14 +2,17 @@
 // [DESC]:     prints the Abstract Syntax Tree as an algebraic-like expression
 
 use crate::expr::Expr;
-use crate::token_type::Literal;
+use crate::token_type::{Literal, TokenType};
 
 pub fn print(expr: &Expr) -> String {
 	// parameter takes a reference to an expression
     
 	match expr {
 		// pattern match to different variants of expression (Expr) enum
-        Expr::Literal(token)  => print_literal(token.literal()),
+        Expr::Literal(token)  => match token.token_type() {
+			TokenType::True | TokenType::False | TokenType::Nil => token.lexeme().to_string(),
+			_ => print_literal(token.literal()),
+		}
         Expr::Grouping(inner) => format!("(group {})", print(inner)),
         
 		Expr::Unary { operator, right } => {
