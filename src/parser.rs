@@ -146,6 +146,14 @@ impl Parser {
                 .clone();
             return Ok(Expr::Stock(name));
         }
+
+        // "price" IDENTIFIER
+        if self.match_any(&[TokenType::Price]) {
+            let name = self
+                .consume(TokenType::Identifier, "Expect product name after 'price'.")?
+                .clone();
+            return Ok(Expr::Price(name));
+        }
         
 
         // or another expression
