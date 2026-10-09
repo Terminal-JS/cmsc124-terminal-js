@@ -120,7 +120,10 @@ impl Parser {
         self.primary()
     }
 
-    // primary 
+// primary -> NUMBER | STRING | "true" | "false" | "nil"
+//      | "stock" IDENTIFIER | "price" IDENTIFIER
+//      | "revenue" | "profit"
+//      | "(" expression ")"
     fn primary(&mut self) -> ParseResult<Expr> {
 
         // NUMBER | STRING | "true" | "false" | "nil" 
@@ -136,6 +139,15 @@ impl Parser {
             return Ok(Expr::Literal(self.previous().clone()));
         }
         
+        // "stock" IDENTIFIER
+        if self.match_any(&[TokenType::Stock]) {
+            let name = self
+                .consume(TokenType::Identifier, "Expect product name after 'stock'.")?
+                .clone();
+            return Ok(Expr::Stock(name));
+        }
+        
+
         // or another expression
         if self.match_any(&[TokenType::LeftParen]) {
             let expr = self.expression()?;
