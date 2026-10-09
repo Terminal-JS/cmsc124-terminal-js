@@ -102,13 +102,20 @@ fn run_parse_at_line(source: String, line: usize) -> bool {
     }
 
     let mut parser = parser::Parser::new(tokens);
-    match parser.parse() {
-        Ok(expression) => {
-            println!("{}", print_ast::print(&expression));
-            false
+    let mut has_error = false;
+
+    while !parser.is_at_end() {
+        match parser.parse() {
+            Ok(expression) => {
+                println!("{}", print_ast::print(&expression));
+            }
+            Err(_) => {
+                has_error = true;
+                break;
+            }
         }
-        Err(_) => true,
     }
+    has_error
 }
 
 
