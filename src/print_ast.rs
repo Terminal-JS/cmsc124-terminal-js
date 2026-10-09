@@ -21,6 +21,9 @@ pub fn print(expr: &Expr) -> String {
 		Expr::Binary { left, operator, right } => {
 			format!("({} {} {})", operator.lexeme(), print(left), print(right))
 		}
+		Expr::Stock(name) => format!("(stock {})", name.lexeme()),
+		Expr::Price(name) => format!("(price {})", name.lexeme()),
+		Expr::Revenue(token) | Expr::Profit(token) => token.lexeme().to_string(),
     }
 }
 
