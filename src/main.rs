@@ -65,10 +65,31 @@ fn run_parse_file(path: &str) {
         .unwrap_or_else(|e| {
             eprintln!("parser: cannot read '{path}': {e}");
             std::process::exit(65);
-        });
+    });
 
-    if run_parse_at_line(source, 1) {
+    let mut output: Vec<String> = Vec::new();
+    let mut had_error = false;
+
+    for (i, text) in source.lines().enumerate() {
+        if text.trim().is_empty() {
+            continue;
+        }
+        match parse_line(text.to_string(), i + 1) {
+            // each lines gets a fresh scan
+            Some(tree) => output.push(tree),
+
+            // flags had_error is error occured
+            // nothing reaches stdout unless every line passed
+            None => had_error = true,
+        }
+    }
+
+    if had_error {
         std::process::exit(65);
+    }
+    
+    for tree in output {
+        println!("{tree}");
     }
 }
 
@@ -87,35 +108,28 @@ fn run_parse_prompt() {
         }
 
         if !line.trim().is_empty() {
-            run_parse_at_line(line, line_number);
+            if let Some(tree) = parse_line(line.trim_end().to_string(), line_number) {
+                println!("{tree}");
+            }
         }
         line_number += 1;
     }
 }
 
-
-fn run_parse_at_line(source: String, line: usize) -> bool {
-    let mut scanner = Scanner::new_at_line(source, line);
-    let tokens = scanner.scan_tokens().clone();
+// Bridge between raw source code & parser/AST pipeline
+// Some(tree) is line is parsed, None if rejected
+fn parse_line(source: String, line: usize) -> Option<String> {
+    let mut scanner = Scanner::new_at_line(source, line);   // initializes scanner
+    let tokens = scanner.scan_tokens().clone();          // tokenization
     if scanner.had_error() {
-        return true;
+        return None;
     }
 
-    let mut parser = parser::Parser::new(tokens);
-    let mut has_error = false;
-
-    while !parser.is_at_end() {
-        match parser.parse() {
-            Ok(expression) => {
-                println!("{}", print_ast::print(&expression));
-            }
-            Err(_) => {
-                has_error = true;
-                break;
-            }
-        }
+    let mut parser = parser::Parser::new(tokens);           // passes token stream to instantiated parser
+    match parser.parse() {
+        Ok(expr) => Some(print_ast::print(&expr)),
+        Err(_) => None,
     }
-    has_error
 }
 
 

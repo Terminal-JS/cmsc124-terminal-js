@@ -6,12 +6,13 @@ pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
 }
- 
+
 #[derive(Debug)]
 pub struct ParseError {
     pub message: String,
 }
 
+                        //  <T: expression, ParseError: message>
 type ParseResult<T> = Result<T, ParseError>;
 
 impl Parser {
@@ -22,8 +23,14 @@ impl Parser {
 
     // entry point: parse a single expression
     pub fn parse(&mut self) -> ParseResult<Expr> {
-        self.expression()
+        let expr = self.expression()?;
+        if !self.is_at_end() {
+            // checks wether parser reached end of token stream
+            return Err(self.error(self.peek(), "Expect end of expression"));
+        }
+        Ok(expr)
     }
+
 
     // expression -> equality
     fn expression(&mut self) -> ParseResult<Expr> {
@@ -45,7 +52,7 @@ impl Parser {
             // creates BT comparison ( ( "!=" | "==" ) comparison )*
             expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
         }
- 
+
         Ok(expr)
     }
 
@@ -68,7 +75,7 @@ impl Parser {
             // term ( ( ">" | ">=" | "<" | "<=" ) term )*
             expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
         }
- 
+
         Ok(expr)
     }
 
@@ -85,7 +92,7 @@ impl Parser {
             // factor ( ( "-" | "+" ) factor )*
             expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
         }
- 
+
         Ok(expr)
     }
 
