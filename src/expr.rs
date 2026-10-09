@@ -8,4 +8,10 @@ pub enum Expr {
     Unary  { operator: Token, right: Box<Expr> },                   // operator applied to an operand
     Binary { left: Box<Expr>, operator: Token, right: Box<Expr> },  // operator sandwhiched between two operands
     Grouping(Box<Expr>),    // parenthesized expression
+
+    // SukiScript specific keywords
+    Stock(Token), 
+    Price(Token),
+    Revenue(Token),
+    Profit(Token),
 }
