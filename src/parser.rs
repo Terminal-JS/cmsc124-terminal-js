@@ -179,7 +179,7 @@ impl Parser {
         self.previous()
     }
  
-    fn is_at_end(&self) -> bool {
+   pub fn is_at_end(&self) -> bool {
         self.peek().token_type() == TokenType::Eof
     }
  
