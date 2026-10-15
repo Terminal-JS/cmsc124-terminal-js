@@ -237,6 +237,12 @@ impl Parser {
         if self.is_at_end() {
             return false;
         }
+
+        // a token on a leter line is never part of the current expression
+        if self.peek().line() != self.fence_line {
+            return false;
+        }
+
         self.peek().token_type() == token_type
     }
  
