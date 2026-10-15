@@ -67,29 +67,13 @@ fn run_parse_file(path: &str) {
             std::process::exit(65);
     });
 
-    let mut output: Vec<String> = Vec::new();
-    let mut had_error = false;
-
-    for (i, text) in source.lines().enumerate() {
-        if text.trim().is_empty() {
-            continue;
+    match parse_source(source, 1) {
+        Some(trees) => {
+            for tree in trees {
+                println!("{tree}");
+            }
         }
-        match parse_source(text.to_string(), i + 1) {
-            // each lines gets a fresh scan
-            Some(tree) => output.push(tree),
-
-            // flags had_error is error occured
-            // nothing reaches stdout unless every line passed
-            None => had_error = true,
-        }
-    }
-
-    if had_error {
-        std::process::exit(65);
-    }
-    
-    for tree in output {
-        println!("{tree}");
+        None => std::process::exit(65),
     }
 }
 
