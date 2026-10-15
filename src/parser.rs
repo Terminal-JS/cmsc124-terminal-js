@@ -54,6 +54,16 @@ impl Parser {
         Ok(expr)
     }
 
+    // after an error, discard the rest of the bad line 
+    // no infinite loop: the first token of every expression
+    // is on fence_line, so at least one token is always consumed
+
+    fn synchronize(&mut self) {
+        while !self.is_at_end() && self.peek().line() == self.fence_line {
+            self.advance();
+        }
+    }
+
 
     // expression -> equality
     fn expression(&mut self) -> ParseResult<Expr> {
