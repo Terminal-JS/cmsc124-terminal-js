@@ -5,6 +5,9 @@ use crate::token_type::TokenType;
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+
+    // line of the first token of the expression being parsed
+    fence_line: usize,
 }
 
 #[derive(Debug)]
@@ -18,7 +21,7 @@ type ParseResult<T> = Result<T, ParseError>;
 impl Parser {
     // creates an instance of a Parser struct
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0 }
+        Parser { tokens, current: 0, fence_line: 0 }
     }
 
     // entry point: parse a single expression
