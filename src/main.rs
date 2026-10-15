@@ -74,7 +74,7 @@ fn run_parse_file(path: &str) {
         if text.trim().is_empty() {
             continue;
         }
-        match parse_line(text.to_string(), i + 1) {
+        match parse_source(text.to_string(), i + 1) {
             // each lines gets a fresh scan
             Some(tree) => output.push(tree),
 
@@ -126,7 +126,7 @@ fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
     // parse even after a lexical error so syntax errors on
     // other lines still get reported
     let mut parser = parser::Parser::new(tokens);
-    let result = parser.parse_all();
+    let result = parser.parse();
 
     if lexical_error {
         return None;
