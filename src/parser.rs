@@ -24,13 +24,13 @@ impl Parser {
         Parser { tokens, current: 0, fence_line: 0 }
     }
 
-    pub fn parse(&mut self) -> Result<Vec<Expr>, Ver<ParseError>> {
+    pub fn parse(&mut self) -> Result<Vec<Expr>, Vec<ParseError>> {
         let mut exprs = Vec::new();
         let mut errors = Vec::new();
 
         while !self.is_at_end() {
             match self.expression_line() {
-                Ok(expr) => expr.push(expr),
+                Ok(expr) => exprs.push(expr),
                 Err(err) => {
                     errors.push(err);
                     // self.synchronize()
@@ -266,11 +266,13 @@ impl Parser {
     }
     
     fn error(&self, token: &Token, message: &str) -> ParseError {
-        // Report to stderr, exit code 65, per the run contract.
-        // Swap this for your group's actual error-reporting function
-        // once that's wired up.
-        let formatted = if token.token_type() == TokenType::Eof {
-            format!("[line {}] Error at end: {}", token.line(), message)
+        // if the offending token is EOF or on a later line, report at 
+        // the end of the line the expression started on
+        let ran_out = token.token_type() == TokenType::Eof
+            || token.line() != self.fence_line;
+
+        let formatted = if ran_out {
+            format!("[line {}] Error at end: {}", self.fence_line, message)
         } else {
             format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
         };
