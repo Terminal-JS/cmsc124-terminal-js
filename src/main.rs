@@ -116,18 +116,24 @@ fn run_parse_prompt() {
     }
 }
 
-// Bridge between raw source code & parser/AST pipeline
-// Some(tree) is line is parsed, None if rejected
-fn parse_line(source: String, line: usize) -> Option<String> {
-    let mut scanner = Scanner::new_at_line(source, line);   // initializes scanner
-    let tokens = scanner.scan_tokens().clone();          // tokenization
-    if scanner.had_error() {
+// scans the whole source once, then parses one expression per line.
+// Some(trees) if every expression passed, None if anything was rejected
+fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
+    let mut scanner = Scanner::new_at_line(source, first_line);
+    let tokens = scanner.scan_tokens().clone();
+    let lexical_error = scanner.had_error();
+
+    // parse even after a lexical error so syntax errors on
+    // other lines still get reported
+    let mut parser = parser::Parser::new(tokens);
+    let result = parser.parse_all();
+
+    if lexical_error {
         return None;
     }
 
-    let mut parser = parser::Parser::new(tokens);           // passes token stream to instantiated parser
-    match parser.parse() {
-        Ok(expr) => Some(print_ast::print(&expr)),
+    match result {
+        Ok(exprs) => Some(exprs.iter().map(print_ast::print).collect()),
         Err(_) => None,
     }
 }
