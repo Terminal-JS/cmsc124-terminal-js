@@ -33,7 +33,7 @@ impl Parser {
                 Ok(expr) => exprs.push(expr),
                 Err(err) => {
                     errors.push(err);
-                    // self.synchronize()
+                    self.synchronize()
                 }
             }
         }
