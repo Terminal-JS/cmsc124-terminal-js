@@ -91,11 +91,12 @@ fn run_parse_prompt() {
             break;
         }
 
-        if !line.trim().is_empty() {
-            if let Some(tree) = parse_line(line.trim_end().to_string(), line_number) {
+        if let Some(trees) = parse_source(line.trim_end().to_string(), line_number) {
+            for tree in trees {
                 println!("{tree}");
             }
         }
+        
         line_number += 1;
     }
 }
