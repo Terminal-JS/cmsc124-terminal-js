@@ -24,6 +24,22 @@ impl Parser {
         Parser { tokens, current: 0, fence_line: 0 }
     }
 
+    pub fn parse(&mut self) -> Result<Vec<Expr>, Ver<ParseError>> {
+        let mut exprs = Vec::new();
+        let mut errors = Vec::new();
+
+        while !self.is_at_end() {
+            match self.expression_line() {
+                Ok(expr) => expr.push(expr),
+                Err(err) => {
+                    errors.push(err);
+                    // self.synchronize()
+                }
+            }
+        }
+        if errors.is_empty() { Ok(exprs) } else { Err(errors) }
+    }
+
     // one expression that must end where its line ends
     pub fn expression_line(&mut self) -> ParseResult<Expr> {
         self.fence_line = self.peek().line();
