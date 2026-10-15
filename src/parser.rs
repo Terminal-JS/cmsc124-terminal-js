@@ -24,10 +24,14 @@ impl Parser {
         Parser { tokens, current: 0, fence_line: 0 }
     }
 
-    // entry point: parse a single expression
-    pub fn parse(&mut self) -> ParseResult<Expr> {
+    // one expression that must end where its line ends
+    pub fn expression_line(&mut self) -> ParseResult<Expr> {
+        self.fence_line = self.peek().line();
+
         let expr = self.expression()?;
-        if !self.is_at_end() {
+
+        // anything else on the same line is leftover
+        if !self.is_at_end() && self.peek().line() == self.fence_line {
             // checks wether parser reached end of token stream
             return Err(self.error(self.peek(), "Expect end of expression"));
         }
