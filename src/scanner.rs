@@ -84,7 +84,7 @@ impl Scanner {
             '%' => self.add_token(TokenType::Percent, Literal::Nil),
 
             // Boolean operators
-            '<' | '=' | '!' => self.scan_operator(c),
+            '<' | '>' | '=' | '!' => self.scan_operator(c),
 
             // Separators
             '.' => self.add_token(TokenType::Dot, Literal::Nil),
@@ -116,6 +116,8 @@ impl Scanner {
         let token_type = match (first, self.match_char('=')) {
             ('<', true) => TokenType::LessEqual,
             ('<', false) => TokenType::Less,
+            ('>', true) => TokenType::GreaterEqual,
+            ('>', false) => TokenType::Greater,
             ('=', true) => TokenType::EqualEqual,
             ('=', false) => TokenType::Equal,
             ('!', true) => TokenType::BangEqual,

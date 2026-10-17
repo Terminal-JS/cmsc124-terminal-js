@@ -5,6 +5,9 @@ use crate::token_type::TokenType;
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+
+    // line of the first token of the expression being parsed
+    fence_line: usize,
 }
 
 #[derive(Debug)]
@@ -18,17 +21,47 @@ type ParseResult<T> = Result<T, ParseError>;
 impl Parser {
     // creates an instance of a Parser struct
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0 }
+        Parser { tokens, current: 0, fence_line: 0 }
     }
 
-    // entry point: parse a single expression
-    pub fn parse(&mut self) -> ParseResult<Expr> {
+    pub fn parse(&mut self) -> Result<Vec<Expr>, Vec<ParseError>> {
+        let mut exprs = Vec::new();
+        let mut errors = Vec::new();
+
+        while !self.is_at_end() {
+            match self.expression_line() {
+                Ok(expr) => exprs.push(expr),
+                Err(err) => {
+                    errors.push(err);
+                    self.synchronize()
+                }
+            }
+        }
+        if errors.is_empty() { Ok(exprs) } else { Err(errors) }
+    }
+
+    // one expression that must end where its line ends
+    pub fn expression_line(&mut self) -> ParseResult<Expr> {
+        self.fence_line = self.peek().line();
+
         let expr = self.expression()?;
-        if !self.is_at_end() {
+
+        // anything else on the same line is leftover
+        if !self.is_at_end() && self.peek().line() == self.fence_line {
             // checks wether parser reached end of token stream
             return Err(self.error(self.peek(), "Expect end of expression"));
         }
         Ok(expr)
+    }
+
+    // after an error, discard the rest of the bad line 
+    // no infinite loop: the first token of every expression
+    // is on fence_line, so at least one token is always consumed
+
+    fn synchronize(&mut self) {
+        while !self.is_at_end() && self.peek().line() == self.fence_line {
+            self.advance();
+        }
     }
 
 
@@ -204,6 +237,12 @@ impl Parser {
         if self.is_at_end() {
             return false;
         }
+
+        // a token on a leter line is never part of the current expression
+        if self.peek().line() != self.fence_line {
+            return false;
+        }
+
         self.peek().token_type() == token_type
     }
  
@@ -227,11 +266,13 @@ impl Parser {
     }
     
     fn error(&self, token: &Token, message: &str) -> ParseError {
-        // Report to stderr, exit code 65, per the run contract.
-        // Swap this for your group's actual error-reporting function
-        // once that's wired up.
-        let formatted = if token.token_type() == TokenType::Eof {
-            format!("[line {}] Error at end: {}", token.line(), message)
+        // if the offending token is EOF or on a later line, report at 
+        // the end of the line the expression started on
+        let ran_out = token.token_type() == TokenType::Eof
+            || token.line() != self.fence_line;
+
+        let formatted = if ran_out {
+            format!("[line {}] Error at end: {}", self.fence_line, message)
         } else {
             format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
         };

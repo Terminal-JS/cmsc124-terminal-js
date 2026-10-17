@@ -67,29 +67,13 @@ fn run_parse_file(path: &str) {
             std::process::exit(65);
     });
 
-    let mut output: Vec<String> = Vec::new();
-    let mut had_error = false;
-
-    for (i, text) in source.lines().enumerate() {
-        if text.trim().is_empty() {
-            continue;
+    match parse_source(source, 1) {
+        Some(trees) => {
+            for tree in trees {
+                println!("{tree}");
+            }
         }
-        match parse_line(text.to_string(), i + 1) {
-            // each lines gets a fresh scan
-            Some(tree) => output.push(tree),
-
-            // flags had_error is error occured
-            // nothing reaches stdout unless every line passed
-            None => had_error = true,
-        }
-    }
-
-    if had_error {
-        std::process::exit(65);
-    }
-    
-    for tree in output {
-        println!("{tree}");
+        None => std::process::exit(65),
     }
 }
 
@@ -107,27 +91,34 @@ fn run_parse_prompt() {
             break;
         }
 
-        if !line.trim().is_empty() {
-            if let Some(tree) = parse_line(line.trim_end().to_string(), line_number) {
+        if let Some(trees) = parse_source(line.trim_end().to_string(), line_number) {
+            for tree in trees {
                 println!("{tree}");
             }
         }
+        
         line_number += 1;
     }
 }
 
-// Bridge between raw source code & parser/AST pipeline
-// Some(tree) is line is parsed, None if rejected
-fn parse_line(source: String, line: usize) -> Option<String> {
-    let mut scanner = Scanner::new_at_line(source, line);   // initializes scanner
-    let tokens = scanner.scan_tokens().clone();          // tokenization
-    if scanner.had_error() {
+// scans the whole source once, then parses one expression per line.
+// Some(trees) if every expression passed, None if anything was rejected
+fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
+    let mut scanner = Scanner::new_at_line(source, first_line);
+    let tokens = scanner.scan_tokens().clone();
+    let lexical_error = scanner.had_error();
+
+    // parse even after a lexical error so syntax errors on
+    // other lines still get reported
+    let mut parser = parser::Parser::new(tokens);
+    let result = parser.parse();
+
+    if lexical_error {
         return None;
     }
 
-    let mut parser = parser::Parser::new(tokens);           // passes token stream to instantiated parser
-    match parser.parse() {
-        Ok(expr) => Some(print_ast::print(&expr)),
+    match result {
+        Ok(exprs) => Some(exprs.iter().map(print_ast::print).collect()),
         Err(_) => None,
     }
 }
