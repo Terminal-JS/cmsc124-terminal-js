@@ -1,0 +1,2 @@
+"hello"         // expect: hello
+"suki store"    // expect: suki store
