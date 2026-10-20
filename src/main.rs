@@ -109,24 +109,24 @@ fn run_parse_prompt() {
 
 // scans the whole source once, then parses one expression per line.
 // Some(trees) if every expression passed, None if anything was rejected
-fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
+// scans and parses; Some(exprs) if no lexical or syntax error
+fn parse_exprs(source: String, first_line: usize) -> Option<Vec<Expr>> {
     let mut scanner = Scanner::new_at_line(source, first_line);
     let tokens = scanner.scan_tokens().clone();
     let lexical_error = scanner.had_error();
 
-    // parse even after a lexical error so syntax errors on
-    // other lines still get reported
     let mut parser = parser::Parser::new(tokens);
     let result = parser.parse();
 
     if lexical_error {
         return None;
     }
+    result.ok()
+}
 
-    match result {
-        Ok(exprs) => Some(exprs.iter().map(print_ast::print).collect()),
-        Err(_) => None,
-    }
+fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
+    parse_exprs(source, first_line)
+        .map(|exprs| exprs.iter().map(print_ast::print).collect())
 }
 
 
