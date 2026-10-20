@@ -21,3 +21,10 @@ impl RuntimeError {
         RuntimeError { message: message.to_string(), line: token.line() }
     }
 }
+
+// display method for runtime errors
+impl fmt::Display for RuntimeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[line {}] Runtime error: {}", self.line, self.message)
+    }
+}
