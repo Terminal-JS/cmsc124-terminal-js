@@ -1,0 +1,4 @@
+!true   // expect: false
+!false  // expect: true
+!nil    // expect: true
+!!nil   // expect: false
