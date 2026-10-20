@@ -70,5 +70,36 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
                 _ => Err(RuntimeError::new(operator, "Unknown unary operator.")),
             }
         }
+
+        Expr::Binary { left, operator, right } => {
+            // evaluation order is fixed: left, then right
+            let left = evaluate(left)?;
+            let right = evaluate(right)?;
+ 
+            match operator.token_type() {
+                // + adds two numbers or joins two strings, nothing else
+                TokenType::Plus => match (&left, &right) {
+                    (Value::Number(a), Value::Number(b)) => Ok(Value::Number(a + b)),
+                    (Value::Str(a), Value::Str(b)) => Ok(Value::Str(format!("{a}{b}"))),
+                    _ => Err(RuntimeError::new(
+                        operator,
+                        "Operands must be two numbers or two strings.",
+                    )),
+                },
+                TokenType::Minus => {
+                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    Ok(Value::Number(a - b))
+                }
+                TokenType::Star => {
+                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    Ok(Value::Number(a * b))
+                }
+                TokenType::Slash => {
+                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    if b == 0.0 {
+                        return Err(RuntimeError::new(operator, "Division by zero."));
+                    }
+                    Ok(Value::Number(a / b))
+                }
     }
 }
