@@ -24,13 +24,16 @@ fn main() {
     const EVAL: &str = "--eval";
 
     match args.len() {
-        1 => run_prompt(),
+        1 => run_eval_prompt(),
+        2 if args[1] == EVAL => run_eval_prompt(),
         2 if args[1] == PARSE => run_parse_prompt(),
+        2 if args[1] == TOKENIZE => run_prompt(),
         2 => run_program(&args[1]),
         3 if args[1] == TOKENIZE => run_file(&args[2]),
         3 if args[1] == PARSE => run_parse_file(&args[2]),
+        3 if args[1] == EVAL => run_eval_file(&args[2]),
         _ => {
-            eprintln!("Usage: run [<path> | --tokenize <path> | --parse [<path>]]");
+            eprintln!("Usage: run [<path> | --tokenize [<path>] | --parse [<path>] | --eval [<path>]]");
             std::process::exit(65);
         }
     }
