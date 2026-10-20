@@ -57,10 +57,10 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
             // check which operator it is
             match operator.token_type() {
                 // arithmetic negation: only numbers can be negated.
-                // check_number_operand returns the f64, or a runtime
+                // check_unary_num returns the f64, or a runtime
                 // error carrying the operator's line (so -"hi" fails here)
                 TokenType::Minus => {
-                    let n = check_number_operand(operator, &right)?;
+                    let n = check_unary_num(operator, &right)?;
                     Ok(Value::Number(-n))
                 }
                 // logical not: (only false and nil are falsey, so !0 is false)
@@ -87,15 +87,15 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
                     )),
                 },
                 TokenType::Minus => {
-                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    let (a, b) = check_binary_num(operator, &left, &right)?;
                     Ok(Value::Number(a - b))
                 }
                 TokenType::Star => {
-                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    let (a, b) = check_binary_num(operator, &left, &right)?;
                     Ok(Value::Number(a * b))
                 }
                 TokenType::Slash => {
-                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    let (a, b) = check_binary_num(operator, &left, &right)?;
                     if b == 0.0 {
                         return Err(RuntimeError::new(operator, "Division by zero."));
                     }
@@ -106,19 +106,19 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
 
                 // comparison and equality
                 TokenType::Greater => {
-                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    let (a, b) = check_binary_num(operator, &left, &right)?;
                     Ok(Value::Bool(a > b))
                 }
                 TokenType::GreaterEqual => {
-                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    let (a, b) = check_binary_num(operator, &left, &right)?;
                     Ok(Value::Bool(a >= b))
                 }
                 TokenType::Less => {
-                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    let (a, b) = check_binary_num(operator, &left, &right)?;
                     Ok(Value::Bool(a < b))
                 }
                 TokenType::LessEqual => {
-                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    let (a, b) = check_binary_num(operator, &left, &right)?;
                     Ok(Value::Bool(a <= b))
                 }
                 // equality works on any pair of types; values of different
@@ -155,5 +155,25 @@ fn literal_value(token: &Token) -> Value {
             _ => Value::Nil,
         },
         _ => Value::Nil,
+    }
+}
+
+// type checks are written once and called from every operator.
+// they run on values, after the operands were evaluated
+fn check_unary_num(operator: &Token, value: &Value) -> Result<f64, RuntimeError> {
+    match value {
+        Value::Number(n) => Ok(*n),
+        _ => Err(RuntimeError::new(operator, "Operand must be a number.")),
+    }
+}
+ 
+fn check_binary_num(
+    operator: &Token,
+    left: &Value,
+    right: &Value,
+) -> Result<(f64, f64), RuntimeError> {
+    match (left, right) {
+        (Value::Number(a), Value::Number(b)) => Ok((*a, *b)),
+        _ => Err(RuntimeError::new(operator, "Operands must be numbers.")),
     }
 }
