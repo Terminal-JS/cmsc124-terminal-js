@@ -6,6 +6,7 @@ use std::env;   // environment module
 use std::fs;    // filesystem module
 use std::io::{self, Write};
 use scanner::Scanner;
+use expr::Expr
 
 pub mod expr;
 pub mod parser;
@@ -20,6 +21,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     const TOKENIZE: &str = "--tokenize";
     const PARSE: &str = "--parse";
+    const EVAL: &str = "--eval";
 
     match args.len() {
         1 => run_prompt(),
