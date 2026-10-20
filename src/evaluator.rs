@@ -129,5 +129,31 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
                 _ => Err(RuntimeError::new(operator, "Unknown binary operator.")),
             }
         }
+
+        // Sukiscript values
+        // no products exist yet until we add statements, so any
+        // product lookup fails and revenue/profit are still zero
+        Expr::Stock(name) | Expr::Price(name) => Err(RuntimeError::new(
+            name,
+            &format!("Unknown product '{}'.", name.lexeme()),
+        )),
+        Expr::Revenue(_) | Expr::Profit(_) => Ok(Value::Number(0.0)),
+    }
+}
+
+// the scanner already computed the value, so a literal is just a lookup
+fn literal_value(token: &Token) -> Value {
+    match token.token_type() {
+        TokenType::True => Value::Bool(true),
+        TokenType::False => Value::Bool(false),
+        TokenType::Number => match token.literal() {
+            Literal::Number(n) => Value::Number(*n),
+            _ => Value::Nil,
+        },
+        TokenType::String => match token.literal() {
+            Literal::Str(s) => Value::Str(s.clone()),
+            _ => Value::Nil,
+        },
+        _ => Value::Nil,
     }
 }
