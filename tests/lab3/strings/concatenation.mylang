@@ -1,0 +1,2 @@
+"a" + "b"                   // expect: ab
+"suki" + " " + "store"      // expect: suki store
