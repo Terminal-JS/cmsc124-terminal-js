@@ -1,0 +1,4 @@
+1 == "1" // expect: false
+"1" != 1 // expect: true
+nil == false // expect: false
+0 == false // expect: false

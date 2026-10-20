@@ -1,0 +1,4 @@
+(1 + 2) * 3     // expect: 9
+1 + 2 * 3       // expect: 7
+((((5))))       // expect: 5
+("a" + "b")     // expect: ab

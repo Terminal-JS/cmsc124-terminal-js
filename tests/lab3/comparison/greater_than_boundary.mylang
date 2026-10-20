@@ -1,0 +1,4 @@
+3 > 2 // expect: true
+2 > 2 // expect: false
+2 >= 2 // expect: true
+1 >= 2 // expect: false
