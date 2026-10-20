@@ -1,0 +1,3 @@
+!"hello"    // expect: false
+!0          // expect: false
+!""         // expect: false
