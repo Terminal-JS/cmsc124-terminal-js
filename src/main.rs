@@ -154,6 +154,33 @@ fn run_eval_file(path: &str) {
     }
 }
 
+fn run_eval_prompt() {
+    let mut line_number = 1;
+
+    loop {
+        print!("> ");
+        io::stdout().flush().unwrap();
+
+        let mut line = String::new();
+        if io::stdin().read_line(&mut line).unwrap() == 0 {
+            break;
+        }
+
+        if let Some(exprs) = parse_exprs(line.trim_end().to_string(), line_number) {
+            for expr in &exprs {
+                match evaluator::evaluate(expr) {
+                    Ok(value) => println!("{value}"),
+                    Err(err) => {
+                        // report it and return to the prompt
+                        eprintln!("{err}");
+                        break;
+                    }
+                }
+            }
+        }
+        line_number += 1;
+    }
+}
 
 fn run_prompt() {
     let mut line_number = 1;
