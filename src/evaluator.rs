@@ -101,5 +101,33 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
                     }
                     Ok(Value::Number(a / b))
                 }
+
+                // still undecided if we include %
+
+                // comparison and equality
+                TokenType::Greater => {
+                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    Ok(Value::Bool(a > b))
+                }
+                TokenType::GreaterEqual => {
+                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    Ok(Value::Bool(a >= b))
+                }
+                TokenType::Less => {
+                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    Ok(Value::Bool(a < b))
+                }
+                TokenType::LessEqual => {
+                    let (a, b) = check_number_operands(operator, &left, &right)?;
+                    Ok(Value::Bool(a <= b))
+                }
+                // equality works on any pair of types; values of different
+                // types are never equal (1 == "1" is false, no error)
+                TokenType::EqualEqual => Ok(Value::Bool(left == right)),
+                TokenType::BangEqual => Ok(Value::Bool(left != right)),
+ 
+                _ => Err(RuntimeError::new(operator, "Unknown binary operator.")),
+            }
+        }
     }
 }
