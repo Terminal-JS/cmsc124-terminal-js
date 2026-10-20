@@ -129,6 +129,31 @@ fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
         .map(|exprs| exprs.iter().map(print_ast::print).collect())
 }
 
+fn run_eval_file(path: &str) {
+    let source = fs:: read_to_string(path)
+        .unwrap_or_else(|e| {
+            eprintln!("eval: cannot read '{path}': {e}");
+            std::process::exit(65);
+        });
+    
+    // static error: nothing runs, exit 65
+    let exprs = match parse_exprs(source, 1) {
+        Some(exprs) => exprs,
+        None => std::process::exit(65),
+    };
+
+    // values print as we go. the first runtime error stops the run
+    for expr in &exprs {
+        match evaluator::evaluate(expr) {
+            Ok(value) => println!("{value}"),
+            Err(err) => {
+                eprintln!("{err}");
+                std::process::exit(70);
+            }
+        }
+    }
+}
+
 
 fn run_prompt() {
     let mut line_number = 1;
