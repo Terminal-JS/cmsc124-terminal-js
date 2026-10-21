@@ -6,7 +6,7 @@ use std::env;   // environment module
 use std::fs;    // filesystem module
 use std::io::{self, Write};
 use scanner::Scanner;
-use expr::Expr
+use expr::Expr;
 
 pub mod expr;
 pub mod parser;
@@ -143,6 +143,7 @@ fn run_eval_file(path: &str) {
     };
 
     // values print as we go. the first runtime error stops the run
+    // correction: single responsibility
     for expr in &exprs {
         match evaluator::evaluate(expr) {
             Ok(value) => println!("{value}"),
