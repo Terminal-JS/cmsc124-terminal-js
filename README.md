@@ -165,23 +165,25 @@ language.]
 
 ### Value printing
 
-- Numbers: [e.g. 5 rather than 5.0]
-- Nil: [spelling]
-- Strings: [with or without quotes]
+- Numbers: prints as a floating-point value (*e.g.* 5.0 rather of 5 only) since this is a business-domain language
+- Nil: null (Jakob's Law)
+- Strings: strings are printed with double quotes (Jakob's Law)
 
 ### Truthiness
-
-[The complete rule. Which values are false in a condition; everything else is
-true.]
+| Falsey | Truthy |
+| :---   | :---   |
+| 0      | any integer or floating-point value |
+| false  | true |
+| "" | " " |
 
 ### Operator semantics
 
-- Arithmetic: [accepted operand types]
-- `+` on strings: [concatenation, error, or coercion]
-- Mixed types: [what happens]
-- Comparison: [accepted operand types]
-- Equality across types: [false, or an error]
-- Division by zero: [value produced, or runtime error]
+- Arithmetic: $+, -, *, /, %$
+- `+` on strings: error, because we have no need for string concatenation for this language
+- Mixed types: always promote integer into a floating-point value, throws error if string
+- Comparison: $==, !=, <=$
+- Equality across types: no equality across types, throws error
+- Division by zero: throw error
 
 ### Scope and bindings
 
