@@ -136,15 +136,6 @@ fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
 }
 
 
-//  evaluation only: values go to 'emit', the first error is returned
-//  ('emit' is a closure: inline funcgion the caller gives)
-fn evaluate_all(exprs: &[Expr], mut emit: impl FnMut(&Value)) -> Result<(), RuntimeError> {
-    for expr in exprs {
-        let value = evaluator::evaluate(expr)?; // '?' returns the error to the caller
-        emit(&value);
-    }
-    Ok(())
-}
 
 
 fn run_eval_file(path: &str) {
@@ -162,25 +153,12 @@ fn run_eval_file(path: &str) {
 
 
     // values print as we go; the first runtime error stops the run
-    if let Err(err) = evaluate_all(&exprs, |value| println!("{value}")) {
+    if let Err(err) = evaluator::evaluate_all(&exprs, |value| println!("{value}")) {
         eprintln!("{err}");
         std::process::exit(EXIT_RUNTIME);
     }
 
 }
-
-// evaluates every expression in order, handing each value to `on_value`.
-// stops at the first runtime error. shared by file mode and the REPL
-pub fn evaluate_all(
-    exprs: &[Expr],
-    mut on_value: impl FnMut(&Value),
-) -> Result<(), RuntimeError> {
-    for expr in exprs {
-        on_value(&evaluate(expr)?);
-    }
-    Ok(())
-}
-
 
 fn run_eval_prompt() {
     let mut line_number = 1;
@@ -195,7 +173,7 @@ fn run_eval_prompt() {
         }
 
         if let Some(exprs) = parse_exprs(line.trim_end().to_string(), line_number) {
-            if let Err(err) = evaluate_all(&exprs, |value| println!("{value}")) {
+            if let Err(err) = evaluator::evaluate_all(&exprs, |value| println!("{value}")) {
                 eprintln!("{err}"); //  report it and return to the prompt
             }
         }
