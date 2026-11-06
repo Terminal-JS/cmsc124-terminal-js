@@ -102,7 +102,13 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
                     Ok(Value::Number(a / b))
                 }
 
-                // still undecided if we include %
+                TokenType::Percent => {
+                    let (a, b) = check_binary_num(operator, &left, &right)?;
+                    if b == 0.0 {
+                        return Err(RuntimeError::new(operator, "Division by zero."));
+                    }
+                    Ok(Value::Number(a % b))
+                }
 
                 // comparison and equality
                 TokenType::Greater => {
@@ -139,6 +145,18 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
         )),
         Expr::Revenue(_) | Expr::Profit(_) => Ok(Value::Number(0.0)),
     }
+}
+
+// evaluates every expression in order, handing each value to `on_value`.
+// stops at the first runtime error. shared by file mode and the REPL
+pub fn evaluate_all(
+    exprs: &[Expr],
+    mut on_value: impl FnMut(&Value),
+) -> Result<(), RuntimeError> {
+    for expr in exprs {
+        on_value(&evaluate(expr)?);
+    }
+    Ok(())
 }
 
 // the scanner already computed the value, so a literal is just a lookup

@@ -168,6 +168,16 @@ fn run_eval_file(path: &str) {
 
 }
 
+pub fn evaluate_all(
+    exprs: &[Expr],
+    mut on_value: impl FnMut(&Value),
+) -> Result<(), RuntimeError> {
+    for expr in exprs {
+        on_value(&evaluate(expr)?);
+    }
+    Ok(())
+}
+
 
 fn run_eval_prompt() {
     let mut line_number = 1;
