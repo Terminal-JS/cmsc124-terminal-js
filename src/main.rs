@@ -7,7 +7,6 @@ use std::fs;    // filesystem module
 use std::io::{self, Write};
 use scanner::Scanner;
 use expr::Expr;
-
 use crate::evaluator::RuntimeError;
 use crate::value::Value;
 
@@ -167,18 +166,6 @@ fn run_eval_file(path: &str) {
         std::process::exit(EXIT_RUNTIME);
     }
 
-}
-
-// evaluates every expression in order, handing each value to `on_value`.
-// stops at the first runtime error. shared by file mode and the REPL
-pub fn evaluate_all(
-    exprs: &[Expr],
-    mut on_value: impl FnMut(&Value),
-) -> Result<(), RuntimeError> {
-    for expr in exprs {
-        on_value(&evaluate(expr)?);
-    }
-    Ok(())
 }
 
 
