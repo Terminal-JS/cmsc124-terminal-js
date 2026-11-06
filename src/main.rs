@@ -30,8 +30,9 @@ fn main() {
     const EVAL: &str = "--eval";
 
     match args.len() {
-        1 => run_eval_prompt(),
-        2 if args[1] == EVAL => run_eval_prompt(),
+        // no arguments: run the REPL
+        1 => run_eval_prompt(), 
+        2 if args[1] == EVAL => run_eval_prompt(),  
         2 if args[1] == PARSE => run_parse_prompt(),
         2 if args[1] == TOKENIZE => run_prompt(),
         2 => run_program(&args[1]),
@@ -45,7 +46,7 @@ fn main() {
     }
 }
 
-
+// runs a program from a file, or prints an error and exits if the file can't be read
 fn run_program(path: &str) {
     fs::read_to_string(path)
         .unwrap_or_else(|e| {
@@ -55,7 +56,6 @@ fn run_program(path: &str) {
 
     println!("Hello, world!");
 }
-
 
 fn run_file(path: &str) {
     let source = fs::read_to_string(path)
@@ -70,7 +70,6 @@ fn run_file(path: &str) {
         std::process::exit(65);
     }
 }
-
 
 fn run_parse_file(path: &str) {
     let source = fs::read_to_string(path)
@@ -134,29 +133,6 @@ fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
     parse_exprs(source, first_line)
         .map(|exprs| exprs.iter().map(print_ast::print).collect())
 }
-/* 
-
-fn run_eval_file(path: &str) -> Result<(), RuntimeError>{
-    let source = fs:: read_to_string(path)
-        .unwrap_or_else(|e| {
-            eprintln!("eval: cannot read '{path}': {e}");
-            std::process::exit(65);
-        });
-    
-    // static error: nothing runs, exit 65
-    let exprs = match parse_exprs(source, 1) {
-        Some(exprs) => exprs,
-        None => std::process::exit(65),
-    };
-
-    for expr in &exprs {
-        let value = evaluator::evaluate(expr)?;
-        println!("{value}");
-    }
-
-    Ok(())
-}
-*/
 
 fn run_eval_file(path: &str) {
     let source = fs::read_to_string(path)
@@ -180,6 +156,8 @@ fn run_eval_file(path: &str) {
 
 }
 
+// evaluates every expression in order, handing each value to `on_value`.
+// stops at the first runtime error. shared by file mode and the REPL
 pub fn evaluate_all(
     exprs: &[Expr],
     mut on_value: impl FnMut(&Value),
@@ -253,7 +231,7 @@ fn run_at_line(source: String, line: usize) -> bool {
 
     if !had_error {
         for token in &tokens {
-            println!("{}", token);          // ② only print if there was NO error
+            println!("{}", token);          // only print if there was NO error
         }
     }
 
