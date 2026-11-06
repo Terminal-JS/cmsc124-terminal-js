@@ -141,6 +141,18 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
     }
 }
 
+// evaluates every expression in order, handing each value to `on_value`.
+// stops at the first runtime error. shared by file mode and the REPL
+pub fn evaluate_all(
+    exprs: &[Expr],
+    mut on_value: impl FnMut(&Value),
+) -> Result<(), RuntimeError> {
+    for expr in exprs {
+        on_value(&evaluate(expr)?);
+    }
+    Ok(())
+}
+
 // the scanner already computed the value, so a literal is just a lookup
 fn literal_value(token: &Token) -> Value {
     match token.token_type() {
