@@ -7,7 +7,6 @@ use std::fs;    // filesystem module
 use std::io::{self, Write};
 use scanner::Scanner;
 use expr::Expr;
-
 use crate::evaluator::RuntimeError;
 use crate::value::Value;
 
@@ -159,6 +158,7 @@ fn run_eval_file(path: &str) {
     }
 
 }
+
 
 fn run_eval_prompt() {
     let mut line_number = 1;
