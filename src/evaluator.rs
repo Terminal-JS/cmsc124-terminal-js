@@ -102,7 +102,13 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
                     Ok(Value::Number(a / b))
                 }
 
-                // still undecided if we include %
+                TokenType::Percent => {
+                    let (a, b) = check_binary_num(operator, &left, &right)?;
+                    if b == 0.0 {
+                        return Err(RuntimeError::new(operator, "Division by zero."));
+                    }
+                    Ok(Value::Number(a % b))
+                }
 
                 // comparison and equality
                 TokenType::Greater => {
