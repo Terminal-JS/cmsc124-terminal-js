@@ -8,6 +8,12 @@ use std::io::{self, Write};
 use scanner::Scanner;
 use expr::Expr;
 
+use crate::evaluator::RuntimeError;
+use crate::evaluator::evaluate;
+use crate::value::Value;
+
+const EXIT_RUNTIME: i32 = 70; // started, then failed partway
+
 pub mod expr;
 pub mod parser;
 pub mod print_ast;
@@ -128,8 +134,9 @@ fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
     parse_exprs(source, first_line)
         .map(|exprs| exprs.iter().map(print_ast::print).collect())
 }
+/* 
 
-fn run_eval_file(path: &str) {
+fn run_eval_file(path: &str) -> Result<(), RuntimeError>{
     let source = fs:: read_to_string(path)
         .unwrap_or_else(|e| {
             eprintln!("eval: cannot read '{path}': {e}");
@@ -142,18 +149,37 @@ fn run_eval_file(path: &str) {
         None => std::process::exit(65),
     };
 
-    // values print as we go. the first runtime error stops the run
-    // correction: single responsibility
     for expr in &exprs {
-        match evaluator::evaluate(expr) {
-            Ok(value) => println!("{value}"),
-            Err(err) => {
-                eprintln!("{err}");
-                std::process::exit(70);
-            }
-        }
+        let value = evaluator::evaluate(expr)?;
+        println!("{value}");
     }
+
+    Ok(())
 }
+*/
+
+fn run_eval_file(path: &str) {
+    let source = fs::read_to_string(path)
+        .unwrap_or_else(|e| {
+            eprintln!("eval: cannot read '{path}': '{e}'");
+            std::process::exit(65);
+        });
+
+    // static error: nothing runs, exit 65
+    let exprs = match parse_exprs(source, 1) {
+        Some(exprs) => exprs,
+        None => std::process::exit(65),
+    };
+
+
+    // values print as we go; the first runtime error stops the run
+    if let Err(err) = evaluate_all(&exprs, |value| println!("{value}")) {
+        eprintln!("{err}");
+        std::process::exit(EXIT_RUNTIME);
+    }
+
+}
+
 
 fn run_eval_prompt() {
     let mut line_number = 1;
