@@ -11,7 +11,9 @@ use expr::Expr;
 use crate::evaluator::RuntimeError;
 use crate::value::Value;
 
-const EXIT_RUNTIME: i32 = 70; // started, then failed partway
+const EXIT_USAGE: i32 = 64;     // bad CL args or incorrect usage
+const EXIT_DATA: i32 = 65;      // file I/O failure, scanner/parse error
+const EXIT_RUNTIME: i32 = 70;   // started, then failed partway
 
 pub mod expr;
 pub mod parser;
@@ -39,7 +41,7 @@ fn main() {
         3 if args[1] == EVAL => run_eval_file(&args[2]),
         _ => {
             eprintln!("Usage: run [<path> | --tokenize [<path>] | --parse [<path>] | --eval [<path>]]");
-            std::process::exit(65);
+            std::process::exit(EXIT_USAGE);
         }
     }
 }
@@ -49,7 +51,7 @@ fn run_program(path: &str) {
     fs::read_to_string(path)
         .unwrap_or_else(|e| {
             eprintln!("lab0: cannot read '{path}': {e}");
-            std::process::exit(65);
+            std::process::exit(EXIT_DATA);
         });
 
     println!("Hello, world!");
@@ -60,13 +62,13 @@ fn run_file(path: &str) {
     let source = fs::read_to_string(path)
         .unwrap_or_else(|e| {
             eprintln!("lab1: cannot read '{path}': {e}");
-            std::process::exit(65);
+            std::process::exit(EXIT_DATA);
         });
     
     let had_error = run(source);
 
     if had_error {
-        std::process::exit(65);
+        std::process::exit(EXIT_DATA);
     }
 }
 
@@ -75,7 +77,7 @@ fn run_parse_file(path: &str) {
     let source = fs::read_to_string(path)
         .unwrap_or_else(|e| {
             eprintln!("parser: cannot read '{path}': '{e}'");
-            std::process::exit(65);
+            std::process::exit(EXIT_DATA);
     });
 
     match parse_source(source, 1) {
@@ -84,7 +86,7 @@ fn run_parse_file(path: &str) {
                 println!("{tree}");
             }
         }
-        None => std::process::exit(65),
+        None => std::process::exit(EXIT_DATA),
     }
 }
 
@@ -150,13 +152,13 @@ fn run_eval_file(path: &str) {
     let source = fs::read_to_string(path)
         .unwrap_or_else(|e| {
             eprintln!("eval: cannot read '{path}': '{e}'");
-            std::process::exit(65);
+            std::process::exit(EXIT_DATA);
         });
 
-    // static error: nothing runs, exit 65
+    // static error: nothing runs, exit EXIT_DATA
     let exprs = match parse_exprs(source, 1) {
         Some(exprs) => exprs,
-        None => std::process::exit(65),
+        None => std::process::exit(EXIT_DATA),
     };
 
 
