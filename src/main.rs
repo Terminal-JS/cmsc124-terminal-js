@@ -9,7 +9,6 @@ use scanner::Scanner;
 use expr::Expr;
 
 use crate::evaluator::RuntimeError;
-use crate::evaluator::evaluate;
 use crate::value::Value;
 
 const EXIT_RUNTIME: i32 = 70; // started, then failed partway
@@ -75,7 +74,7 @@ fn run_file(path: &str) {
 fn run_parse_file(path: &str) {
     let source = fs::read_to_string(path)
         .unwrap_or_else(|e| {
-            eprintln!("parser: cannot read '{path}': {e}");
+            eprintln!("parser: cannot read '{path}': '{e}'");
             std::process::exit(65);
     });
 
@@ -134,29 +133,18 @@ fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
     parse_exprs(source, first_line)
         .map(|exprs| exprs.iter().map(print_ast::print).collect())
 }
-/* 
 
-fn run_eval_file(path: &str) -> Result<(), RuntimeError>{
-    let source = fs:: read_to_string(path)
-        .unwrap_or_else(|e| {
-            eprintln!("eval: cannot read '{path}': {e}");
-            std::process::exit(65);
-        });
-    
-    // static error: nothing runs, exit 65
-    let exprs = match parse_exprs(source, 1) {
-        Some(exprs) => exprs,
-        None => std::process::exit(65),
-    };
 
-    for expr in &exprs {
-        let value = evaluator::evaluate(expr)?;
-        println!("{value}");
+//  evaluation only: values go to 'emit', the first error is returned
+//  ('emit' is a closure: inline funcgion the caller gives)
+fn evaluate_all(exprs: &[Expr], mut emit: impl FnMut(&Value)) -> Result<(), RuntimeError> {
+    for expr in exprs {
+        let value = evaluator::evaluate(expr)?; // '?' returns the error to the caller
+        emit(&value);
     }
-
     Ok(())
 }
-*/
+
 
 fn run_eval_file(path: &str) {
     let source = fs::read_to_string(path)
@@ -194,15 +182,8 @@ fn run_eval_prompt() {
         }
 
         if let Some(exprs) = parse_exprs(line.trim_end().to_string(), line_number) {
-            for expr in &exprs {
-                match evaluator::evaluate(expr) {
-                    Ok(value) => println!("{value}"),
-                    Err(err) => {
-                        // report it and return to the prompt
-                        eprintln!("{err}");
-                        break;
-                    }
-                }
+            if let Err(err) = evaluate_all(&exprs, |value| println!("{value}")) {
+                eprintln!("{err}"); //  report it and return to the prompt
             }
         }
         line_number += 1;
