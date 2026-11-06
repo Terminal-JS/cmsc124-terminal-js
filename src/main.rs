@@ -7,8 +7,6 @@ use std::fs;    // filesystem module
 use std::io::{self, Write};
 use scanner::Scanner;
 use expr::Expr;
-use crate::evaluator::RuntimeError;
-use crate::value::Value;
 
 const EXIT_USAGE: i32 = 64;     // bad CL args or incorrect usage
 const EXIT_DATA: i32 = 65;      // file I/O failure, scanner/parse error

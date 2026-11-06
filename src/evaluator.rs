@@ -15,7 +15,7 @@ pub struct RuntimeError {
     pub message: String,
     pub line: usize,
 }
- 
+
 impl RuntimeError {
     fn new(token: &Token, message: &str) -> Self {
         RuntimeError { message: message.to_string(), line: token.line() }
