@@ -10,9 +10,10 @@ use expr::Expr;
 use crate::evaluator::RuntimeError;
 use crate::value::Value;
 
-const EXIT_USAGE: i32 = 64;     // bad CL args or incorrect usage
-const EXIT_DATA: i32 = 65;      // file I/O failure, scanner/parse error
+const EXIT_USAGE:   i32 = 64;   // bad CL args or incorrect usage
+const EXIT_DATA:    i32 = 65;   // file I/O failure, scanner/parse error
 const EXIT_RUNTIME: i32 = 70;   // started, then failed partway
+const INPUT_INDICATOR: &str = "> ";
 
 pub mod expr;
 pub mod parser;
@@ -28,7 +29,7 @@ fn main() {
     const TOKENIZE: &str = "--tokenize";
     const PARSE: &str = "--parse";
     const EVAL: &str = "--eval";
-
+    
     match args.len() {
         // no arguments: run the REPL
         1 => run_eval_prompt(), 
@@ -46,14 +47,20 @@ fn main() {
     }
 }
 
+
+// HELPER:  method for verifying if path exists/valid
+// returns: exit code 65 on bad file path
+fn read_source(label: &str, path: &str) -> String {
+    fs::read_to_string(path).unwrap_or_else(|e| {
+        eprintln!("{label}: cannot read '{path}': '{e}'");
+        std::process::exit(EXIT_DATA);
+    })
+}
+
+
 // runs a program from a file, or prints an error and exits if the file can't be read
 fn run_program(path: &str) {
-    fs::read_to_string(path)
-        .unwrap_or_else(|e| {
-            eprintln!("lab0: cannot read '{path}': {e}");
-            std::process::exit(EXIT_DATA);
-        });
-
+    read_source("lab0", path);
     println!("Hello, world!");
 }
 
@@ -72,12 +79,7 @@ fn run_file(path: &str) {
 }
 
 fn run_parse_file(path: &str) {
-    let source = fs::read_to_string(path)
-        .unwrap_or_else(|e| {
-            eprintln!("parser: cannot read '{path}': '{e}'");
-            std::process::exit(EXIT_DATA);
-    });
-
+    let source = read_source("parser", path);
     match parse_source(source, 1) {
         Some(trees) => {
             for tree in trees {
@@ -88,28 +90,16 @@ fn run_parse_file(path: &str) {
     }
 }
 
-
+// REPL for --parse: prints the tree for each line types
+// bad line prints its error and returns
 fn run_parse_prompt() {
-    let mut line_number = 1;
-
-    loop {
-        print!("> ");
-        io::stdout().flush().unwrap();
-
-        let mut line = String::new();
-        let bytes_read = io::stdin().read_line(&mut line).unwrap();
-        if bytes_read == 0 {
-            break;
-        }
-
-        if let Some(trees) = parse_source(line.trim_end().to_string(), line_number) {
+    run_repl(|line, n| {
+        if let Some(trees) = parse_source(line, n) {
             for tree in trees {
                 println!("{tree}");
             }
         }
-        
-        line_number += 1;
-    }
+    });
 }
 
 // scans the whole source once, then parses one expression per line.
@@ -160,52 +150,26 @@ fn run_eval_file(path: &str) {
 }
 
 
+
+
+// REPL for --eval: prints the value of each line typed
+// runtime error is printed and session continues
+// file mode exits 70
 fn run_eval_prompt() {
-    let mut line_number = 1;
-
-    loop {
-        print!("> ");
-        io::stdout().flush().unwrap();
-
-        let mut line = String::new();
-        if io::stdin().read_line(&mut line).unwrap() == 0 {
-            break;
-        }
-
-        if let Some(exprs) = parse_exprs(line.trim_end().to_string(), line_number) {
+    run_repl(|line, n| {
+        if let Some(exprs) = parse_exprs(line, n) {
             if let Err(err) = evaluator::evaluate_all(&exprs, |value| println!("{value}")) {
-                eprintln!("{err}"); //  report it and return to the prompt
+                eprintln!("{err}"); // report it and return to the prompt
             }
-        }
-        line_number += 1;
-    }
+        };
+    })
 }
 
+// REPL for --tokenize: prints the tokens of each line typed
 fn run_prompt() {
-    let mut line_number = 1;
-
-    loop {
-        // flushes cursor on the same
-        // line as the input indicator
-        print!("> ");
-        io::stdout()
-            .flush()
-            .unwrap();
-
-        let mut line = String::new();
-
-        // read lines from terminal
-        let bytes_read = io::stdin()
-                            .read_line(&mut line)
-                            .unwrap();
-
-        if bytes_read == 0 {
-            break;  // EOF
-        }
-
-        run_at_line(line, line_number);
-        line_number += 1;
-    }
+    run_repl(|line, n| {
+        run_at_line(line, n);
+    });
 }
 
 
@@ -225,4 +189,31 @@ fn run_at_line(source: String, line: usize) -> bool {
     }
 
     had_error
+}
+
+
+// prompts, reads, trims, and numbers lines
+// all REPL mode calls this and supplies only 'handle'
+fn run_repl(mut handle: impl FnMut(String, usize)) {
+    let mut line_number = 1;
+
+    loop {
+        print!("{}", INPUT_INDICATOR);
+        // failed flush delays prompt (so not fatal)
+        let _ = io::stdout().flush();
+
+
+        let mut line = String::new();
+        match io::stdin().read_line(&mut line) {
+            Ok(0) => break,
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("repl: cannot read input {e}");
+                break;
+            }
+        }
+
+        handle(line.trim_end().to_string(), line_number);
+        line_number += 1;
+    }
 }
