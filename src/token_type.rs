@@ -51,6 +51,9 @@ pub enum TokenType {
     String,
     Number,
 
+    // statement terminator
+    Semicolon,
+
     // end of file
     Eof,
 }
@@ -131,6 +134,7 @@ impl fmt::Display for TokenType {
             TokenType::Identifier => "IDENTIFIER",
             TokenType::String => "STRING",
             TokenType::Number => "NUMBER",
+            TokenType::Semicolon => "SEMICOLON",
             TokenType::Eof => "EOF",
         };
         write!(f, "{name}")

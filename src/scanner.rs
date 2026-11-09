@@ -89,18 +89,23 @@ impl Scanner {
             // Separators
             '.' => self.add_token(TokenType::Dot, Literal::Nil),
             ',' => self.add_token(TokenType::Comma, Literal::Nil),
-
+            
             // Literals
             '"' => self.scan_string(),
             c if c.is_digit(10) => self.number(),
-
+            
             // Identifiers and keywords
             c if c.is_alphabetic() || c == '_' => self.identifier(),
-
+            
+            // statement terminator
+            ';' => self.add_token(TokenType::Semicolon, Literal::Nil),
+            
             // Ignore whitespace
             ' ' | '\r' | '\t' => {}
             '\n' if !self.is_at_end() => self.line += 1,
             '\n' => {}
+
+
 
             // Unrecognized character
             _ => {
