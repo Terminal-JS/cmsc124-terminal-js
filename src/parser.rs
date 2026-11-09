@@ -133,15 +133,15 @@ impl Parser {
     fn factor(&mut self) -> ParseResult<Expr> {
         // left unary
         let mut expr = self.unary()?;
- 
+
         while self.match_any(&[TokenType::Slash, TokenType::Star]) {
             let operator = self.previous().clone();
             // right unary
             let right = self.unary()?;
             // unary ( ( "/" | "*" ) unary )*
             expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
-        }
- 
+    }
+
         Ok(expr)
     }
 
@@ -210,13 +210,13 @@ impl Parser {
             self.consume(TokenType::RightParen, "Expect ')' after expression.")?;
             return Ok(Expr::Grouping(Box::new(expr)));
         }
- 
+
         Err(self.error(self.peek(), "Expect expression."))
     }
 
     // Helper Functions
 
-     fn match_any(&mut self, types: &[TokenType]) -> bool {
+    fn match_any(&mut self, types: &[TokenType]) -> bool {
         for t in types {
             if self.check(*t) {
                 self.advance();
@@ -225,14 +225,14 @@ impl Parser {
         }
         false
     }
- 
+
     fn consume(&mut self, token_type: TokenType, message: &str) -> ParseResult<&Token> {
         if self.check(token_type) {
             return Ok(self.advance());
         }
         Err(self.error(self.peek(), message))
     }
- 
+
     fn check(&self, token_type: TokenType) -> bool {
         if self.is_at_end() {
             return false;
@@ -245,22 +245,22 @@ impl Parser {
 
         self.peek().token_type() == token_type
     }
- 
+
     fn advance(&mut self) -> &Token {
         if !self.is_at_end() {
             self.current += 1;
         }
         self.previous()
     }
- 
-   pub fn is_at_end(&self) -> bool {
+
+    pub fn is_at_end(&self) -> bool {
         self.peek().token_type() == TokenType::Eof
     }
- 
+
     fn peek(&self) -> &Token {
         &self.tokens[self.current]
     }
- 
+
     fn previous(&self) -> &Token {
         &self.tokens[self.current - 1]
     }
@@ -280,5 +280,10 @@ impl Parser {
         ParseError { message: formatted }
     }
 
+    // TODO (week 2):
+    // three new methods to be implemented:
+        // parse_program()
+        // statement()
+        // product_declaration()
 
 }
