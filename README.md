@@ -133,7 +133,7 @@ The fields are:
 ```
 program     -> statement*
 statement   -> product | sell | restock | expense
-             | calculate | show | check
+             | calculate | show | check | block
 
 product     -> "product" IDENTIFIER "price" expression "stock" expression
 sell        -> "sell" IDENTIFIER "quantity" expression
