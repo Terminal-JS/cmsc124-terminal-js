@@ -67,7 +67,10 @@ This matches the `ext` field in the Lab test manifests used by the harness, incl
 | `true` | Boolean literal |
 | `false` | Boolean literal |
 | `nil` | Nil literal |
-
+| `while` | Starts a loop block while a condition evaluates to true |
+| `and` | Logical AND operator |
+| `or` | Logical OR operator |
+| `return` | Exits a function block with an optional return value |
 ### Operators
 
 | Operator | Category | Operands | Associativity | Precedence |
