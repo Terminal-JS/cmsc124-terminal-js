@@ -272,6 +272,9 @@ Example format:
 [line 3] Runtime error: Operands must be numbers.
 ```
 
+## Control flow and functions
+Logical operators return: the operand value itself (e.g. `nil or "hello"` produces `"hello"`)
+
 ## Native functions
 
 
