@@ -15,3 +15,4 @@
   ```md
   expression -> or -> and -> equality -> comparison -> ...
   ```
+- Update language extension from `.mylang` -> `.suki`
