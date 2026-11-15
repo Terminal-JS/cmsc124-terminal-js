@@ -81,7 +81,7 @@ impl Parser {
         while self.match_any(&[TokenType::Or]) {
             let operator = self.previous().clone();
             let right = self.logic_and()?;
-            expr = Expr::Binary {
+            expr = Expr::Logical {
                 left: Box::new(expr),
                 operator,
                 right: Box::new(right),
@@ -97,7 +97,7 @@ impl Parser {
         while self.match_any(&[TokenType::And]) {
             let operator = self.previous().clone();
             let right = self.equality()?;
-            expr = Expr::Binary {
+            expr = Expr::Logical {
                 left: Box::new(expr),
                 operator,
                 right: Box::new(right),
