@@ -71,10 +71,13 @@ This matches the `ext` field in the Lab test manifests used by the harness, incl
 | `and` | Logical AND operator |
 | `or` | Logical OR operator |
 | `return` | Exits a function block with an optional return value |
-### Operators
 
+
+### Operators
 | Operator | Category | Operands | Associativity | Precedence |
 |---|---|---|---|---|
+| or | logical | binary | left | 0 |
+| and | logical | binary | left | 1 |
 | `<` | comparison | binary | left | 2 |
 | `<=` | comparison | binary | left | 2 |
 | `>` | comparison | binary | left | 2 |
@@ -138,6 +141,9 @@ program     -> statement*
 statement   -> product | sell | restock | expense
              | calculate | show | check | block
 
+while_stmt  -> "while" expression block
+return_stmt ->  "return" expression?
+
 product     -> "product" IDENTIFIER "price" expression "stock" expression
 sell        -> "sell" IDENTIFIER "quantity" expression
 restock     -> "restock" IDENTIFIER "quantity" expression "cost" expression
@@ -147,7 +153,9 @@ show        -> "show" expression
 check       -> "check" expression block ( "else" block )?
 block       -> "{" statement* "}"
 
-expression  -> equality
+expression  -> logic_or
+logic_or    -> logic_and ( "or" logic_and )*
+logic_and   -> equality ( "and" equality )*
 equality    -> comparison ( ( "!=" | "==" ) comparison )*
 comparison  -> term ( ( ">" | ">=" | "<" | "<=" ) term )*
 term        -> factor ( ( "-" | "+" ) factor )*
