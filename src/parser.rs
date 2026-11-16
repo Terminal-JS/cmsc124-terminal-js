@@ -177,6 +177,31 @@ impl Parser {
         self.expression_stmt()
     }
 
+    // showStmt -> "show" expression ";"
+    fn show_stmt(&mut self) -> ParseResult<Stmt> {
+        let value = self.expression()?;
+        self.expect_semicolon("Expect ';' after value.")?;
+        Ok(Stmt::Show(value))
+    }
+
+    // exprStmt -> expression ";"
+    fn expression_stmt(&mut self) -> ParseResult<Stmt> {
+        let expr = self.expression()?;
+        self.expect_semicolon("Expect ';' after expression.")?;
+        Ok(Stmt::Expression(expr))
+    }
+
+    // block -> "{" declaration* "}"      ('{' was already consumed)
+    fn block(&mut self) -> ParseResult<Vec<Stmt>> {
+        let mut stmts = Vec::new();
+        while !self.check(TokenType::RightBrace) && !self.is_at_end() {
+            stmts.push(self.declaration()?);
+        }
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")?;
+        Ok(stmts)
+    }
+
+
 
 
     // +-------------------------------+
