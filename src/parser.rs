@@ -282,11 +282,6 @@ impl Parser {
         Ok(expr)
     }
 
-    // expression -> or
-    fn expression(&mut self) -> ParseResult<Expr> {
-        self.logic_or()
-    }
-
     // or -> and
     fn logic_or(&mut self) -> ParseResult<Expr> {
         let mut expr = self.logic_and()?;
@@ -303,7 +298,7 @@ impl Parser {
         Ok(expr)
     }
 
-    // and -> comparison
+    // and -> equality
     fn logic_and(&mut self) -> ParseResult<Expr> {
         let mut expr = self.equality()?;
         
@@ -429,6 +424,11 @@ impl Parser {
             return Ok(Expr::Literal(self.previous().clone()));
         }
         
+        // a variable read
+        if self.match_any(&[TokenType::Identifier]) {
+            return Ok(Expr::Variable(self.previous().clone()));
+        }
+
         // "stock" IDENTIFIER
         if self.match_any(&[TokenType::Stock]) {
             let name = self
