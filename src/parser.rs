@@ -234,6 +234,23 @@ impl Parser {
         }
     }
 
+    // to be refactored
+    fn is_statement_start(&self) -> bool {
+        matches!(
+            self.peek().token_type(),
+            TokenType::Var
+                | TokenType::Product
+                | TokenType::Sell
+                | TokenType::Restock
+                | TokenType::Expense
+                | TokenType::Calculate
+                | TokenType::Show
+                | TokenType::Check
+                | TokenType::While
+                | TokenType::Return
+        )
+    }
+
 
 
     // +-------------------------------+
