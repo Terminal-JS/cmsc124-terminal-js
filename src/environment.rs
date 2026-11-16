@@ -4,25 +4,24 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-// a store item's two fields
-pub struct Product {
-    pub price: f64,
-    pub stock: f64,
-}
+use crate::value::Value;
 
+// type alias for a reference-counted, mutable Environment
+pub type EnvRef = Rc<RefCell<Environment>>;
 
-// a products symbol table
 pub struct Environment {
-    products: HashMap<String, Product>,
-    enclosing: Option<Rc<RefCell<Environment>>>
+    values: HashMap<String, Value>,
+    enclosing: Option<EnvRef>,
+
 }
 
 impl Environment {
-    pub fn new() -> Self {
-        Self {
-            products: Hashmap::new(),
+    // the global scope
+    pub fn new_ref() -> EnvRef {
+        Rc::new(RefCell::new(Environment {
+            values: HashMap::new(),
             enclosing: None,
-        }
+        }))
     }
 
 
