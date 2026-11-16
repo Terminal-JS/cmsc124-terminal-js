@@ -140,16 +140,19 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
         Expr::Logical {left, operator, right} => {
             let left_val = evaluate(left)?;
 
-            if operator.token_type() == TokenType::Or {
-                if left_val.is_truthy() {   // short-circuit: return left's truthiness val
-                    return Ok(left_val);
+            match operator.token_type() {
+                TokenType::Or => {  // short-circuit: return left's truthiness val
+                    if left_val.is_truthy() { return Ok(left_val); }
                 }
-            } else {    // for `and` operator
-                if !left_val.is_truthy() {  // short-circuit: return right's truthiness val
-                    return Ok(left_val);
+
+                TokenType::And => {  // short-circuit: return right's truthiness val
+                    if !left_val.is_truthy() { return Ok(left_val); }
                 }
+                
+                _ => return Err(RuntimeError::new(operator, "Unknown logical operator.")),
             }
 
+            // evaluate right operand if checks above fails
             evaluate(right)
         }
 
