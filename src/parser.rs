@@ -85,6 +85,31 @@ impl Parser {
         }
     }
 
+    // Statement mode: parse a whole program
+    // program   -> declaration* EOF
+    // Returns every statement if the program is syntactically valid, or every
+    // error found. Errors are collected, not fatal: after each one the parser
+    // synchronizes and keeps going, so one run reports many mistakes.
+    pub fn parse_program(&mut self, repl: bool) -> ParseResult<Vec<Stmt>, Vec<ParseError>> {
+        self.statement_mode = true;
+        self.repl = repl;
+        self.block_depth = 0;
+        self.errors.clear();
+
+        let mut stmts = Vec::new();
+        while !self.is_at_end() {
+            if let Some(stmt) = self.declaration_or_recover() {
+                stmts.push(stmt);
+            }
+        }
+
+        if self.errors.is_empty() {
+            Ok(stmts)
+        } else {
+            Err(std::mem::take(&mut self.errors))
+        }
+    }
+
 
     // +-------------------------------+
     // | Precedence Chaining           |
