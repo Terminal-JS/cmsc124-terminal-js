@@ -1,0 +1,5 @@
+show true or false and false    // expect: true
+show (true or false) and false  // expect: false
+show 1 < 2 and 2 < 3            // expect: true
+show 1 < 2 and 3 < 2            // expect: false
+show 1 + 1 == 2 and 2 * 2 == 4  // expect: true
