@@ -21,6 +21,8 @@ pub mod token;
 pub mod scanner;
 pub mod value;
 pub mod evaluator;
+pub mod stmt;
+pub mod environment;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
