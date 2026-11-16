@@ -110,6 +110,19 @@ impl Parser {
         }
     }
 
+    // one declaration, or recover from an error and return None
+    fn declaration_or_recover(&mut self) -> Option<Stmt> {
+        let before = self.current;
+        match self.declaration() {
+            Ok(stmt) => Some(stmt),
+            Err(err) => {
+                self.errors.push(err);
+                self.synchronize_stmt(before);
+                None
+            }
+        }
+    }
+
 
     // +-------------------------------+
     // | Precedence Chaining           |
