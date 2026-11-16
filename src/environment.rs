@@ -24,6 +24,14 @@ impl Environment {
         }))
     }
 
+    // a block scope sitting inside 'parent'
+    pub fn child_of(parent: EnvRef) -> EnvRef {
+        Rc::new(RefCell::new(Environment {
+            values: HashMap::new(),
+            enclosing: Some(Rc::clone(&parent)),
+        }))
+    }
+
 
     // defines a product and records it to the hashmap
     pub fn define(&mut self, name: &str, product: Product) {
