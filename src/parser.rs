@@ -201,6 +201,19 @@ impl Parser {
         Ok(stmts)
     }
 
+    // every statement ends with ';'. in the REPL the last one may omit it,
+    // so typing `2 + 3` at the prompt works.
+    fn expect_semicolon(&mut self, message: &str) -> ParseResult<()> {
+        if self.check(TokenType::Semicolon) {
+            self.advance();
+            return Ok(());
+        }
+        if self.repl && self.is_at_end() {
+            return Ok(());
+        }
+        Err(self.error(self.peek(), message))
+    }
+
 
 
 
