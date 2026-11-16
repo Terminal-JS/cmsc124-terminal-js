@@ -46,6 +46,8 @@ impl Parser {
 
     // expression mode 
     pub fn parse(&mut self) -> ParseResult<Vec<Expr>, Vec<ParseError>> {
+        self.statement_mode = false;
+
         let mut exprs = Vec::new();
         let mut errors = Vec::new();
 
@@ -123,26 +125,31 @@ impl Parser {
         }
     }
 
-    // declaration -> var_declaration | statement
+    // declaration -> varDecl | productDecl | statement
     fn declaration(&mut self) -> ParseResult<Stmt> {
-        // if the next token is 'var', parse a variable declaration, 
         if self.match_any(&[TokenType::Var]) {
-            self.var_declaration()
-        // otherwise parse a statement
-        } else {
-            self.statement()   
+            return self.var_declaration();
         }
+        if self.match_any(&[TokenType::Product]) {
+            return self.product_declaration();
+        }
+        self.statement()
     }
 
-    // statement -> showStmt | block | exprStmt
-    fn statement(&mut self) -> ParseResult<Stmt> {
-        if self.match_any(&[TokenType::Show]) {
-            return self.show_stmt();
-        }
-        if self.match_any(&[TokenType::LeftBrace]) {
-            return Ok(Stmt::Block(self.block()?));
-        }
-        self.expression_stmt()
+    // varDecl -> "var" IDENTIFIER ( "=" expression )? ";"
+    fn var_declaration(&mut self) -> ParseResult<Stmt> {
+        let name = self
+            .consume(TokenType::Identifier, "Expect variable name.")?
+            .clone();
+
+        let initializer = if self.match_any(&[TokenType::Equal]) {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+
+        self.expect_semicolon("Expect ';' after variable declaration.")?;
+        Ok(Stmt::Var { name, initializer })
     }
 
 
