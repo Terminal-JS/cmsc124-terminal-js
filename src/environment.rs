@@ -32,24 +32,35 @@ impl Environment {
         }))
     }
 
-
-    // defines a product and records it to the hashmap
-    pub fn define(&mut self, name: &str, product: Product) {
-        self.products.insert(name.to_string(), product);
+    // creates a binding . returns false (and changes nothing) 
+    // if the name already exists in this scope
+    pub fn define(&mut self, name: &str, value: Value) -> bool {
+        if self.values.contains_key(name) {
+            false
+        } else {
+            self.values.insert(name.to_string(), value);
+            true
+        }
     }
 
-    // checks if a specific product exists in the hashmap
-    pub fn contains_local(&self, name: &str) -> bool {
-        self.products.contain_key(name)
-    }
 
-    // param:  product name (key)
-    // return: product struct (price, stock)
-    pub fn get(&self, name: &str) -> Option<&Product> {
-        self.products.get(name)
-    }
+    // // defines a product and records it to the hashmap
+    // pub fn define(&mut self, name: &str, product: Product) {
+    //     self.products.insert(name.to_string(), product);
+    // }
 
-    pub fn get_mut(&mut self, name: &str) -> Option<&mut Product> {
-        todo!()
-    }
+    // // checks if a specific product exists in the hashmap
+    // pub fn contains_local(&self, name: &str) -> bool {
+    //     self.products.contain_key(name)
+    // }
+
+    // // param:  product name (key)
+    // // return: product struct (price, stock)
+    // pub fn get(&self, name: &str) -> Option<&Product> {
+    //     self.products.get(name)
+    // }
+
+    // pub fn get_mut(&mut self, name: &str) -> Option<&mut Product> {
+    //     todo!()
+    // }
 }
