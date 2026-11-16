@@ -166,6 +166,18 @@ impl Parser {
         Ok(Stmt::Product { name, price, stock })
     }
 
+    // statement -> showStmt | block | exprStmt
+    fn statement(&mut self) -> ParseResult<Stmt> {
+        if self.match_any(&[TokenType::Show]) {
+            return self.show_stmt();
+        }
+        if self.match_any(&[TokenType::LeftBrace]) {
+            return Ok(Stmt::Block(self.block()?));
+        }
+        self.expression_stmt()
+    }
+
+
 
     // +-------------------------------+
     // | Precedence Chaining           |
