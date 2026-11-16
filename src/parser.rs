@@ -214,6 +214,25 @@ impl Parser {
         Err(self.error(self.peek(), message))
     }
 
+    // after an error, skip to a safe place to resume: just past a ';', or
+    // right before a keyword that starts a statement.
+    // always makes progress, otherwise a bad token loops forever and the
+    // harness times out: if the failed statement consumed nothing, consume
+    // one token here.
+    fn synchronize_stmt(&mut self, before: usize) {
+        if self.current == before && !self.is_at_end() {
+            self.advance();
+        }
+        while !self.is_at_end() {
+            if self.previous().token_type() == TokenType::Semicolon {
+                return;
+            }
+            if self.is_statement_start() {
+                return;
+            }
+            self.advance();
+        }
+    }
 
 
 
