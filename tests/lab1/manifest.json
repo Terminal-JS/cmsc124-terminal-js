@@ -1,5 +1,5 @@
 {
-    "ext": ".mylang",
+    "ext": ".suki",
     "flag": "--tokenize",
     "mode": "sidecar"
 }
