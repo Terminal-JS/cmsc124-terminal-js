@@ -26,8 +26,9 @@ pub struct ParseError {
     pub message: String,
 }
 
- //  <T: expression, ParseError: message>
-type ParseResult<T> = Result<T, ParseError>;
+ //  ParseResult<T> = one node or one error 
+ // ParseResult<T, E> = lets parse() / parse_program() return a vector of nodes or a vector of errors
+type ParseResult<T, E = ParseError> = Result<T, E>;
 
 impl Parser {
     // creates an instance of a Parser struct (expression mode by default)
@@ -43,7 +44,8 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Result<Vec<Expr>, Vec<ParseError>> {
+    // expression mode 
+    pub fn parse(&mut self) -> ParseResult<Vec<Expr>, Vec<ParseError>> {
         let mut exprs = Vec::new();
         let mut errors = Vec::new();
 
