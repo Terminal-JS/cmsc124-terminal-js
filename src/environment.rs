@@ -43,6 +43,17 @@ impl Environment {
         }
     }
 
+    // reads a binding, innermost first
+    pub fn get(&self, name: &str) -> Option<Value> {
+        if let Some(v) = self.values.get(name) {
+            return Some(v.clone());
+        }
+        match &self.enclosing {
+            Some(outer) => outer.borrow().get(name),
+            None => None,
+        }
+    }
+
 
     // // defines a product and records it to the hashmap
     // pub fn define(&mut self, name: &str, product: Product) {
