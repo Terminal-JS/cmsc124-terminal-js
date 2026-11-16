@@ -25,10 +25,10 @@ impl Environment {
     }
 
     // a block scope sitting inside 'parent'
-    pub fn child_of(parent: EnvRef) -> EnvRef {
+    pub fn child_of(parent: &EnvRef) -> EnvRef {
         Rc::new(RefCell::new(Environment {
             values: HashMap::new(),
-            enclosing: Some(Rc::clone(&parent)),
+            enclosing: Some(Rc::clone(parent)),
         }))
     }
 
