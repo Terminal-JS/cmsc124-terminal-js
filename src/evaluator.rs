@@ -1,13 +1,13 @@
 // [FILENAME]: evaluator.rs
 // [DESC]:     walks an expression tree and computes its value
- 
+
 use std::fmt;
- 
+
 use crate::expr::Expr;
 use crate::token::Token;
 use crate::token_type::{Literal, TokenType};
 use crate::value::Value;
- 
+
 // a runtime error remembers the line of the token that caused it,
 // which is why the parser stores whole tokens in the tree
 #[derive(Debug)]
@@ -75,7 +75,7 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
             // evaluation order is fixed: left, then right
             let left = evaluate(left)?;
             let right = evaluate(right)?;
- 
+
             match operator.token_type() {
                 // + adds two numbers or joins two strings, nothing else
                 TokenType::Plus => match (&left, &right) {
@@ -131,9 +131,29 @@ pub fn evaluate(expr: &Expr) -> EvalResult {
                 // types are never equal (1 == "1" is false, no error)
                 TokenType::EqualEqual => Ok(Value::Bool(left == right)),
                 TokenType::BangEqual => Ok(Value::Bool(left != right)),
- 
+
                 _ => Err(RuntimeError::new(operator, "Unknown binary operator.")),
             }
+        }
+
+
+        Expr::Logical {left, operator, right} => {
+            let left_val = evaluate(left)?;
+
+            match operator.token_type() {
+                TokenType::Or => {  // short-circuit: return left's truthiness val
+                    if left_val.is_truthy() { return Ok(left_val); }
+                }
+
+                TokenType::And => {  // short-circuit: return right's truthiness val
+                    if !left_val.is_truthy() { return Ok(left_val); }
+                }
+                
+                _ => return Err(RuntimeError::new(operator, "Unknown logical operator.")),
+            }
+
+            // evaluate right operand if checks above fails
+            evaluate(right)
         }
 
         // Sukiscript values
@@ -184,7 +204,7 @@ fn check_unary_num(operator: &Token, value: &Value) -> Result<f64, RuntimeError>
         _ => Err(RuntimeError::new(operator, "Operand must be a number.")),
     }
 }
- 
+
 fn check_binary_num(
     operator: &Token,
     left: &Value,
