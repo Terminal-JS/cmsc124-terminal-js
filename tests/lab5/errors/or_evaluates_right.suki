@@ -1,0 +1,1 @@
+show false or ("a" - 1) // expect runtime error: Operands must be numbers.

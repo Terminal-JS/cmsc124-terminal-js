@@ -1,0 +1,5 @@
+show false and ("a" - 1)    // expect: false
+show true or ("a" - 1)      // expect: true
+show false and (1 / 0)      // expect: false
+show true or (1 / 0)        // expect: true
+                            // show: prints a value or message to output

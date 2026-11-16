@@ -69,10 +69,47 @@ impl Parser {
     }
 
 
-    // expression -> equality
+    // +-------------------------------+
+    // | Precedence Chaining           |
+    // +-------------------------------+
+
+    // expression -> or
     fn expression(&mut self) -> ParseResult<Expr> {
-        self.equality()
+        self.logic_or()
     }
+
+    // or -> and
+    fn logic_or(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.logic_and()?;
+
+        while self.match_any(&[TokenType::Or]) {
+            let operator = self.previous().clone();
+            let right = self.logic_and()?;
+            expr = Expr::Logical {
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            };
+        }
+        Ok(expr)
+    }
+
+    // and -> comparison
+    fn logic_and(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.equality()?;
+        
+        while self.match_any(&[TokenType::And]) {
+            let operator = self.previous().clone();
+            let right = self.equality()?;
+            expr = Expr::Logical {
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            }
+        }
+        Ok(expr)
+    }
+
 
     // equality -> comparison
     fn equality(&mut self) -> ParseResult<Expr> {
@@ -218,8 +255,9 @@ impl Parser {
         Err(self.error(self.peek(), "Expect expression."))
     }
 
-    // Helper Functions
 
+    
+    // Helper Functions
     fn match_any(&mut self, types: &[TokenType]) -> bool {
         for t in types {
             if self.check(*t) {

@@ -1,0 +1,6 @@
+show nil or "hello"     // expect: hello
+show 0 or "x"           // expect: 0
+show nil and "x"        // expect: nil
+show true and 5         // expect: 5
+show "a" and "b"        // expect: b
+show false or false     // expect: false
