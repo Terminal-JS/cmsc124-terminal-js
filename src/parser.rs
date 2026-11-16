@@ -1,6 +1,7 @@
 use crate::expr::Expr;
 use crate::token::Token;
 use crate::token_type::TokenType;
+use crate::stmt::Stmt; 
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -8,6 +9,9 @@ pub struct Parser {
 
     // line of the first token of the expression being parsed
     fence_line: usize,
+
+    // whether the parser is running in REPL mode or not
+    repl: bool,
 }
 
 #[derive(Debug)]
@@ -20,8 +24,8 @@ type ParseResult<T> = Result<T, ParseError>;
 
 impl Parser {
     // creates an instance of a Parser struct
-    pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0, fence_line: 0 }
+    pub fn new(tokens: Vec<Token>, repl: bool) -> Self {
+        Parser { tokens, current: 0, fence_line: 0, repl }
     }
 
     pub fn parse(&mut self) -> Result<Vec<Expr>, Vec<ParseError>> {
@@ -324,4 +328,98 @@ impl Parser {
         // statement()
         // product_declaration()
 
+    // parses a whole program,
+    // repl = true allows bare expressions as statements
+
+    // parses a whole program, returning a vector of statements or a vector of errors
+    // repl = true allows bare expressions as statements
+    pub fn parse_program(&mut self, repl: bool) -> ParseResult<Vec<Stmt>, Vec<ParseError>> {
+
+        // iedit: Result<Vec<Stmt> -> ensure dapat nga node ang ginaretrun 
+
+        self.repl = repl;
+        let mut stmts = Vec::new();
+        let mut errors = Vec::new();
+
+        // parse statements until the end of the token stream
+        while !self.is_at_end() {
+            let before = self.current;
+            match self.declaration() {
+                Ok(stmt) => stmts.push(stmt),
+                Err(err) => {
+                    // report the error and skip to the next statement
+                    errors.push(err);
+                    self.synchronize_stmt(before);  // skip to the next statement
+                }
+            }
+        }
+        // return the vector of statements if there were no errors, otherwise return the vector of errors
+        if errors.is_empty() { Ok(stmts) } else { Err(errors) }
+    }
+
+    // each statement starts on its own line, so its line becomes the fence
+    // method that parses a single statement, returning a Stmt or a ParseError
+    fn declaration(&mut self) -> ParseResult<Stmt> {
+        self.fence_line = self.peek().line();
+
+        // check which kind of statement it is, and call the appropriate method
+        // show, product declaration, sell, restock, expense, calculate, check
+        match self.peek().token_type() {
+            TokenType::Show => self.show_stmt(),
+            // each feature adds its own arm here, one line each
+            _ if self.repl => {
+                // if in REPL mode, bare expressions are allowed as statements
+                let expr = self.expression()?;
+                self.end_of_statement()?;
+                Ok(Stmt::Expression(expr))
+            }
+            _ => Err(self.error(self.peek(), "Expect statement.")),
+        }
+    }
+
+    // parses a show statement, returning a Stmt or a ParseError
+    fn show_stmt(&mut self) -> ParseResult<Stmt> {
+        self.advance(); // consume 'show'
+        let value = self.expression()?;
+        self.end_of_statement()?;
+        Ok(Stmt::Show(value))
+    }
+
+    // after a statement, nothing else may follow on its line (except a closing brace)
+    fn end_of_statement(&self) -> ParseResult<()> {
+        // if the next token is not EOF, and it is on the same line as the fence, and it is not a closing brace, then it is an error
+        let t = self.peek();
+        if !self.is_at_end() && t.line() == self.fence_line && t.token_type() != TokenType::RightBrace {
+            return Err(self.error(t, "Expect end of statement."));
+        }
+        Ok(())
+    }
+
+    // skip to the next statement keyword. always consumes at least one token,
+    // otherwise a bad token loops forever and the harness times out
+    fn synchronize_stmt(&mut self, before: usize) {
+        if self.current == before {
+            self.advance();
+        }
+        while !self.is_at_end() && !self.is_statement_start() {
+            self.advance();
+        }
+    }
+
+    fn is_statement_start(&self) -> bool {
+        // a statement starts with one of these keywords, or a bare expression in REPL mode
+        matches!(
+            self.peek().token_type(),
+            TokenType::Product | TokenType::Sell | TokenType::Restock | TokenType::Expense
+                | TokenType::Calculate | TokenType::Show | TokenType::Check
+        )
+    }
+
+    // todo:
+    //  raw helpers
+    // check_raw() -> bool, 
+    // match_raw() -> bool,
+    // consume_raw() -> &Token,
 }
+
+   
