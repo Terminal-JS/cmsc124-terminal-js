@@ -7,11 +7,18 @@ pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
 
-    // line of the first token of the expression being parsed
+    // expression mode: line of the first token of the current expression.
     fence_line: usize,
+
+    // true after parse_program() is called, false after parse() is called.
+    statement_mode: bool,
 
     // whether the parser is running in REPL mode or not
     repl: bool,
+
+    block_depth: usize, // tracks the depth of nested blocks
+
+    errors: Vec<ParseError>, // collects errors encountered during parsing
 }
 
 #[derive(Debug)]
@@ -19,16 +26,28 @@ pub struct ParseError {
     pub message: String,
 }
 
-                        //  <T: expression, ParseError: message>
-type ParseResult<T> = Result<T, ParseError>;
+ //  ParseResult<T> = one node or one error 
+ // ParseResult<T, E> = lets parse() / parse_program() return a vector of nodes or a vector of errors
+type ParseResult<T, E = ParseError> = Result<T, E>;
 
 impl Parser {
-    // creates an instance of a Parser struct
-    pub fn new(tokens: Vec<Token>, repl: bool) -> Self {
-        Parser { tokens, current: 0, fence_line: 0, repl }
+    // creates an instance of a Parser struct (expression mode by default)
+    pub fn new(tokens: Vec<Token>) -> Self {
+        Parser {
+            tokens,
+            current: 0,
+            fence_line: 0,
+            statement_mode: false,
+            repl: false,
+            block_depth: 0,
+            errors: Vec::new(),
+        }
     }
 
-    pub fn parse(&mut self) -> Result<Vec<Expr>, Vec<ParseError>> {
+    // expression mode 
+    pub fn parse(&mut self) -> ParseResult<Vec<Expr>, Vec<ParseError>> {
+        self.statement_mode = false;
+
         let mut exprs = Vec::new();
         let mut errors = Vec::new();
 
@@ -68,14 +87,199 @@ impl Parser {
         }
     }
 
+    // Statement mode: parse a whole program
+    // program   -> declaration* EOF
+    // Returns every statement if the program is syntactically valid, or every
+    // error found. Errors are collected, not fatal: after each one the parser
+    // synchronizes and keeps going, so one run reports many mistakes.
+    pub fn parse_program(&mut self, repl: bool) -> ParseResult<Vec<Stmt>, Vec<ParseError>> {
+        self.statement_mode = true;
+        self.repl = repl;
+        self.block_depth = 0;
+        self.errors.clear();
+
+        let mut stmts = Vec::new();
+        while !self.is_at_end() {
+            if let Some(stmt) = self.declaration_or_recover() {
+                stmts.push(stmt);
+            }
+        }
+
+        if self.errors.is_empty() {
+            Ok(stmts)
+        } else {
+            Err(std::mem::take(&mut self.errors))
+        }
+    }
+
+    // one declaration, or recover from an error and return None
+    fn declaration_or_recover(&mut self) -> Option<Stmt> {
+        let before = self.current;
+        match self.declaration() {
+            Ok(stmt) => Some(stmt),
+            Err(err) => {
+                self.errors.push(err);
+                self.synchronize_stmt(before);
+                None
+            }
+        }
+    }
+
+    // declaration -> varDecl | productDecl | statement
+    fn declaration(&mut self) -> ParseResult<Stmt> {
+        if self.match_any(&[TokenType::Var]) {
+            return self.var_declaration();
+        }
+        if self.match_any(&[TokenType::Product]) {
+            return self.product_declaration();
+        }
+        self.statement()
+    }
+
+    // varDecl -> "var" IDENTIFIER ( "=" expression )? ";"
+    fn var_declaration(&mut self) -> ParseResult<Stmt> {
+        let name = self
+            .consume(TokenType::Identifier, "Expect variable name.")?
+            .clone();
+
+        let initializer = if self.match_any(&[TokenType::Equal]) {
+            Some(self.expression()?)
+        } else {
+            None
+        };
+
+        self.expect_semicolon("Expect ';' after variable declaration.")?;
+        Ok(Stmt::Var { name, initializer })
+    }
+
+    // productDecl -> "product" IDENTIFIER "price" expression "stock" expression ";"
+    fn product_declaration(&mut self) -> ParseResult<Stmt> {
+        let name = self
+            .consume(TokenType::Identifier, "Expect product name after 'product'.")?
+            .clone();
+        self.consume(TokenType::Price, "Expect 'price' after product name.")?;
+        let price = self.expression()?;
+        self.consume(TokenType::Stock, "Expect 'stock' after product price.")?;
+        let stock = self.expression()?;
+
+        self.expect_semicolon("Expect ';' after product declaration.")?;
+        Ok(Stmt::Product { name, price, stock })
+    }
+
+    // statement -> showStmt | block | exprStmt
+    fn statement(&mut self) -> ParseResult<Stmt> {
+        if self.match_any(&[TokenType::Show]) {
+            return self.show_stmt();
+        }
+        if self.match_any(&[TokenType::LeftBrace]) {
+            return Ok(Stmt::Block(self.block()?));
+        }
+        self.expression_stmt()
+    }
+
+    // showStmt -> "show" expression ";"
+    fn show_stmt(&mut self) -> ParseResult<Stmt> {
+        let value = self.expression()?;
+        self.expect_semicolon("Expect ';' after value.")?;
+        Ok(Stmt::Show(value))
+    }
+
+    // exprStmt -> expression ";"
+    fn expression_stmt(&mut self) -> ParseResult<Stmt> {
+        let expr = self.expression()?;
+        self.expect_semicolon("Expect ';' after expression.")?;
+        Ok(Stmt::Expression(expr))
+    }
+
+    // block -> "{" declaration* "}"      ('{' was already consumed)
+    fn block(&mut self) -> ParseResult<Vec<Stmt>> {
+        let mut stmts = Vec::new();
+        while !self.check(TokenType::RightBrace) && !self.is_at_end() {
+            stmts.push(self.declaration()?);
+        }
+        self.consume(TokenType::RightBrace, "Expect '}' after block.")?;
+        Ok(stmts)
+    }
+
+    // every statement ends with ';'. in the REPL the last one may omit it,
+    // so typing `2 + 3` at the prompt works.
+    fn expect_semicolon(&mut self, message: &str) -> ParseResult<()> {
+        if self.check(TokenType::Semicolon) {
+            self.advance();
+            return Ok(());
+        }
+        if self.repl && self.is_at_end() {
+            return Ok(());
+        }
+        Err(self.error(self.peek(), message))
+    }
+
+    // after an error, skip to a safe place to resume: just past a ';', or
+    // right before a keyword that starts a statement.
+    // always makes progress, otherwise a bad token loops forever and the
+    // harness times out: if the failed statement consumed nothing, consume
+    // one token here.
+    fn synchronize_stmt(&mut self, before: usize) {
+        if self.current == before && !self.is_at_end() {
+            self.advance();
+        }
+        while !self.is_at_end() {
+            if self.previous().token_type() == TokenType::Semicolon {
+                return;
+            }
+            if self.is_statement_start() {
+                return;
+            }
+            self.advance();
+        }
+    }
+
+    // to be refactored
+    fn is_statement_start(&self) -> bool {
+        matches!(
+            self.peek().token_type(),
+            TokenType::Var
+                | TokenType::Product
+                | TokenType::Sell
+                | TokenType::Restock
+                | TokenType::Expense
+                | TokenType::Calculate
+                | TokenType::Show
+                | TokenType::Check
+                | TokenType::While
+                | TokenType::Return
+        )
+    }
+
+
 
     // +-------------------------------+
     // | Precedence Chaining           |
     // +-------------------------------+
 
-    // expression -> or
+    // expression -> assignment
     fn expression(&mut self) -> ParseResult<Expr> {
-        self.logic_or()
+        self.assignment()
+    }
+
+    // assignment -> IDENTIFIER "=" assignment | or
+    // right-associative: a = b = 3 is a = (b = 3)
+    fn assignment(&mut self) -> ParseResult<Expr> {
+        // parse the left side as an ordinary expression first
+        let expr = self.logic_or()?;
+
+        if self.match_any(&[TokenType::Equal]) {
+            let equals = self.previous().clone();
+            let value = self.assignment()?;
+
+            // only a bare name can be assigned to: 1 = 2 and (a) = 2 are errors
+            return match expr {
+                Expr::Variable(name) => Ok(Expr::Assign { name, value: Box::new(value) }),
+                _ => Err(self.error(&equals, "Invalid assignment target.")),
+            };
+        }
+
+        Ok(expr)
     }
 
     // or -> and
@@ -94,7 +298,7 @@ impl Parser {
         Ok(expr)
     }
 
-    // and -> comparison
+    // and -> equality
     fn logic_and(&mut self) -> ParseResult<Expr> {
         let mut expr = self.equality()?;
         
@@ -220,6 +424,11 @@ impl Parser {
             return Ok(Expr::Literal(self.previous().clone()));
         }
         
+        // a variable read
+        if self.match_any(&[TokenType::Identifier]) {
+            return Ok(Expr::Variable(self.previous().clone()));
+        }
+
         // "stock" IDENTIFIER
         if self.match_any(&[TokenType::Stock]) {
             let name = self
@@ -280,8 +489,9 @@ impl Parser {
             return false;
         }
 
-        // a token on a leter line is never part of the current expression
-        if self.peek().line() != self.fence_line {
+        // expression mode only: a token on a later line is never part of
+        // the current expression. statement mode ignores lines entirely.
+        if !self.statement_mode && self.peek().line() != self.fence_line {
             return false;
         }
 
@@ -308,118 +518,28 @@ impl Parser {
     }
     
     fn error(&self, token: &Token, message: &str) -> ParseError {
-        // if the offending token is EOF or on a later line, report at 
-        // the end of the line the expression started on
-        let ran_out = token.token_type() == TokenType::Eof
-            || token.line() != self.fence_line;
-
-        let formatted = if ran_out {
-            format!("[line {}] Error at end: {}", self.fence_line, message)
+        let formatted = if self.statement_mode {
+            // statement mode: report where the bad token actually is
+            if token.token_type() == TokenType::Eof {
+                format!("[line {}] Error at end: {}", token.line(), message)
+            } else {
+                format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
+            }
         } else {
-            format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
+            // expression mode: if the offending token is EOF or on a later
+            // line, report at the end of the line the expression started on
+            let ran_out = token.token_type() == TokenType::Eof
+                || token.line() != self.fence_line;
+
+            if ran_out {
+                format!("[line {}] Error at end: {}", self.fence_line, message)
+            } else {
+                format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
+            }
         };
         eprintln!("{}", formatted);
         ParseError { message: formatted }
     }
-
-    // TODO (week 2):
-    // three new methods to be implemented:
-        // parse_program()
-        // statement()
-        // product_declaration()
-
-    // parses a whole program,
-    // repl = true allows bare expressions as statements
-
-    // parses a whole program, returning a vector of statements or a vector of errors
-    // repl = true allows bare expressions as statements
-    pub fn parse_program(&mut self, repl: bool) -> ParseResult<Vec<Stmt>, Vec<ParseError>> {
-
-        // iedit: Result<Vec<Stmt> -> ensure dapat nga node ang ginaretrun 
-
-        self.repl = repl;
-        let mut stmts = Vec::new();
-        let mut errors = Vec::new();
-
-        // parse statements until the end of the token stream
-        while !self.is_at_end() {
-            let before = self.current;
-            match self.declaration() {
-                Ok(stmt) => stmts.push(stmt),
-                Err(err) => {
-                    // report the error and skip to the next statement
-                    errors.push(err);
-                    self.synchronize_stmt(before);  // skip to the next statement
-                }
-            }
-        }
-        // return the vector of statements if there were no errors, otherwise return the vector of errors
-        if errors.is_empty() { Ok(stmts) } else { Err(errors) }
-    }
-
-    // each statement starts on its own line, so its line becomes the fence
-    // method that parses a single statement, returning a Stmt or a ParseError
-    fn declaration(&mut self) -> ParseResult<Stmt> {
-        self.fence_line = self.peek().line();
-
-        // check which kind of statement it is, and call the appropriate method
-        // show, product declaration, sell, restock, expense, calculate, check
-        match self.peek().token_type() {
-            TokenType::Show => self.show_stmt(),
-            // each feature adds its own arm here, one line each
-            _ if self.repl => {
-                // if in REPL mode, bare expressions are allowed as statements
-                let expr = self.expression()?;
-                self.end_of_statement()?;
-                Ok(Stmt::Expression(expr))
-            }
-            _ => Err(self.error(self.peek(), "Expect statement.")),
-        }
-    }
-
-    // parses a show statement, returning a Stmt or a ParseError
-    fn show_stmt(&mut self) -> ParseResult<Stmt> {
-        self.advance(); // consume 'show'
-        let value = self.expression()?;
-        self.end_of_statement()?;
-        Ok(Stmt::Show(value))
-    }
-
-    // after a statement, nothing else may follow on its line (except a closing brace)
-    fn end_of_statement(&self) -> ParseResult<()> {
-        // if the next token is not EOF, and it is on the same line as the fence, and it is not a closing brace, then it is an error
-        let t = self.peek();
-        if !self.is_at_end() && t.line() == self.fence_line && t.token_type() != TokenType::RightBrace {
-            return Err(self.error(t, "Expect end of statement."));
-        }
-        Ok(())
-    }
-
-    // skip to the next statement keyword. always consumes at least one token,
-    // otherwise a bad token loops forever and the harness times out
-    fn synchronize_stmt(&mut self, before: usize) {
-        if self.current == before {
-            self.advance();
-        }
-        while !self.is_at_end() && !self.is_statement_start() {
-            self.advance();
-        }
-    }
-
-    fn is_statement_start(&self) -> bool {
-        // a statement starts with one of these keywords, or a bare expression in REPL mode
-        matches!(
-            self.peek().token_type(),
-            TokenType::Product | TokenType::Sell | TokenType::Restock | TokenType::Expense
-                | TokenType::Calculate | TokenType::Show | TokenType::Check
-        )
-    }
-
-    // todo:
-    //  raw helpers
-    // check_raw() -> bool, 
-    // match_raw() -> bool,
-    // consume_raw() -> &Token,
 }
 
    
