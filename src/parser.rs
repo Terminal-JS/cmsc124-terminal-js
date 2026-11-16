@@ -26,13 +26,21 @@ pub struct ParseError {
     pub message: String,
 }
 
-                        //  <T: expression, ParseError: message>
+ //  <T: expression, ParseError: message>
 type ParseResult<T> = Result<T, ParseError>;
 
 impl Parser {
-    // creates an instance of a Parser struct
-    pub fn new(tokens: Vec<Token>, repl: bool) -> Self {
-        Parser { tokens, current: 0, fence_line: 0, repl }
+    // creates an instance of a Parser struct (expression mode by default)
+    pub fn new(tokens: Vec<Token>) -> Self {
+        Parser {
+            tokens,
+            current: 0,
+            fence_line: 0,
+            statement_mode: false,
+            repl: false,
+            block_depth: 0,
+            errors: Vec::new(),
+        }
     }
 
     pub fn parse(&mut self) -> Result<Vec<Expr>, Vec<ParseError>> {
