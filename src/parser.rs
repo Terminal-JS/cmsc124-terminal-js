@@ -152,6 +152,20 @@ impl Parser {
         Ok(Stmt::Var { name, initializer })
     }
 
+    // productDecl -> "product" IDENTIFIER "price" expression "stock" expression ";"
+    fn product_declaration(&mut self) -> ParseResult<Stmt> {
+        let name = self
+            .consume(TokenType::Identifier, "Expect product name after 'product'.")?
+            .clone();
+        self.consume(TokenType::Price, "Expect 'price' after product name.")?;
+        let price = self.expression()?;
+        self.consume(TokenType::Stock, "Expect 'stock' after product price.")?;
+        let stock = self.expression()?;
+
+        self.expect_semicolon("Expect ';' after product declaration.")?;
+        Ok(Stmt::Product { name, price, stock })
+    }
+
 
     // +-------------------------------+
     // | Precedence Chaining           |
