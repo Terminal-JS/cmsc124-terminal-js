@@ -518,118 +518,28 @@ impl Parser {
     }
     
     fn error(&self, token: &Token, message: &str) -> ParseError {
-        // if the offending token is EOF or on a later line, report at 
-        // the end of the line the expression started on
-        let ran_out = token.token_type() == TokenType::Eof
-            || token.line() != self.fence_line;
-
-        let formatted = if ran_out {
-            format!("[line {}] Error at end: {}", self.fence_line, message)
+        let formatted = if self.statement_mode {
+            // statement mode: report where the bad token actually is
+            if token.token_type() == TokenType::Eof {
+                format!("[line {}] Error at end: {}", token.line(), message)
+            } else {
+                format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
+            }
         } else {
-            format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
+            // expression mode: if the offending token is EOF or on a later
+            // line, report at the end of the line the expression started on
+            let ran_out = token.token_type() == TokenType::Eof
+                || token.line() != self.fence_line;
+
+            if ran_out {
+                format!("[line {}] Error at end: {}", self.fence_line, message)
+            } else {
+                format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
+            }
         };
         eprintln!("{}", formatted);
         ParseError { message: formatted }
     }
-
-    // TODO (week 2):
-    // three new methods to be implemented:
-        // parse_program()
-        // statement()
-        // product_declaration()
-
-    // parses a whole program,
-    // repl = true allows bare expressions as statements
-
-    // parses a whole program, returning a vector of statements or a vector of errors
-    // repl = true allows bare expressions as statements
-    pub fn parse_program(&mut self, repl: bool) -> ParseResult<Vec<Stmt>, Vec<ParseError>> {
-
-        // iedit: Result<Vec<Stmt> -> ensure dapat nga node ang ginaretrun 
-
-        self.repl = repl;
-        let mut stmts = Vec::new();
-        let mut errors = Vec::new();
-
-        // parse statements until the end of the token stream
-        while !self.is_at_end() {
-            let before = self.current;
-            match self.declaration() {
-                Ok(stmt) => stmts.push(stmt),
-                Err(err) => {
-                    // report the error and skip to the next statement
-                    errors.push(err);
-                    self.synchronize_stmt(before);  // skip to the next statement
-                }
-            }
-        }
-        // return the vector of statements if there were no errors, otherwise return the vector of errors
-        if errors.is_empty() { Ok(stmts) } else { Err(errors) }
-    }
-
-    // each statement starts on its own line, so its line becomes the fence
-    // method that parses a single statement, returning a Stmt or a ParseError
-    fn declaration(&mut self) -> ParseResult<Stmt> {
-        self.fence_line = self.peek().line();
-
-        // check which kind of statement it is, and call the appropriate method
-        // show, product declaration, sell, restock, expense, calculate, check
-        match self.peek().token_type() {
-            TokenType::Show => self.show_stmt(),
-            // each feature adds its own arm here, one line each
-            _ if self.repl => {
-                // if in REPL mode, bare expressions are allowed as statements
-                let expr = self.expression()?;
-                self.end_of_statement()?;
-                Ok(Stmt::Expression(expr))
-            }
-            _ => Err(self.error(self.peek(), "Expect statement.")),
-        }
-    }
-
-    // parses a show statement, returning a Stmt or a ParseError
-    fn show_stmt(&mut self) -> ParseResult<Stmt> {
-        self.advance(); // consume 'show'
-        let value = self.expression()?;
-        self.end_of_statement()?;
-        Ok(Stmt::Show(value))
-    }
-
-    // after a statement, nothing else may follow on its line (except a closing brace)
-    fn end_of_statement(&self) -> ParseResult<()> {
-        // if the next token is not EOF, and it is on the same line as the fence, and it is not a closing brace, then it is an error
-        let t = self.peek();
-        if !self.is_at_end() && t.line() == self.fence_line && t.token_type() != TokenType::RightBrace {
-            return Err(self.error(t, "Expect end of statement."));
-        }
-        Ok(())
-    }
-
-    // skip to the next statement keyword. always consumes at least one token,
-    // otherwise a bad token loops forever and the harness times out
-    fn synchronize_stmt(&mut self, before: usize) {
-        if self.current == before {
-            self.advance();
-        }
-        while !self.is_at_end() && !self.is_statement_start() {
-            self.advance();
-        }
-    }
-
-    fn is_statement_start(&self) -> bool {
-        // a statement starts with one of these keywords, or a bare expression in REPL mode
-        matches!(
-            self.peek().token_type(),
-            TokenType::Product | TokenType::Sell | TokenType::Restock | TokenType::Expense
-                | TokenType::Calculate | TokenType::Show | TokenType::Check
-        )
-    }
-
-    // todo:
-    //  raw helpers
-    // check_raw() -> bool, 
-    // match_raw() -> bool,
-    // consume_raw() -> &Token,
 }
 
    
