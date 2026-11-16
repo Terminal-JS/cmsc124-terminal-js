@@ -54,24 +54,16 @@ impl Environment {
         }
     }
 
-
-    // // defines a product and records it to the hashmap
-    // pub fn define(&mut self, name: &str, product: Product) {
-    //     self.products.insert(name.to_string(), product);
-    // }
-
-    // // checks if a specific product exists in the hashmap
-    // pub fn contains_local(&self, name: &str) -> bool {
-    //     self.products.contain_key(name)
-    // }
-
-    // // param:  product name (key)
-    // // return: product struct (price, stock)
-    // pub fn get(&self, name: &str) -> Option<&Product> {
-    //     self.products.get(name)
-    // }
-
-    // pub fn get_mut(&mut self, name: &str) -> Option<&mut Product> {
-    //     todo!()
-    // }
+    // updates a binding, innermost first. returns false if the name is not found
+    pub fn assign(&mut self, name: &str, value: Value) -> bool {
+        if let Some(slot) = self.values.get_mut(name) {
+            *slot = value;
+            true
+        } else {
+            match &self.enclosing {
+                Some(outer) => outer.borrow_mut().assign(name, value),
+                None => false,
+            }
+        }
+    }
 }
