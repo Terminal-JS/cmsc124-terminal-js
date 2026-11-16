@@ -257,6 +257,31 @@ impl Parser {
     // | Precedence Chaining           |
     // +-------------------------------+
 
+    // expression -> assignment
+    fn expression(&mut self) -> ParseResult<Expr> {
+        self.assignment()
+    }
+
+    // assignment -> IDENTIFIER "=" assignment | or
+    // right-associative: a = b = 3 is a = (b = 3)
+    fn assignment(&mut self) -> ParseResult<Expr> {
+        // parse the left side as an ordinary expression first
+        let expr = self.logic_or()?;
+
+        if self.match_any(&[TokenType::Equal]) {
+            let equals = self.previous().clone();
+            let value = self.assignment()?;
+
+            // only a bare name can be assigned to: 1 = 2 and (a) = 2 are errors
+            return match expr {
+                Expr::Variable(name) => Ok(Expr::Assign { name, value: Box::new(value) }),
+                _ => Err(self.error(&equals, "Invalid assignment target.")),
+            };
+        }
+
+        Ok(expr)
+    }
+
     // expression -> or
     fn expression(&mut self) -> ParseResult<Expr> {
         self.logic_or()
