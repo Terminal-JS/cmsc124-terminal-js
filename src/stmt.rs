@@ -8,8 +8,9 @@ pub enum Stmt {
     // statements and outputs
     Show(Expr),         // evaluates and prints
     Expression(Expr),   // bare expression
-    Block(Vec<Stmt>),    // basically: {...}, run chilren in order
+    Block(Vec<Stmt>),   // { ... } runs children in a new scope
 
     // declarations
-    Product {name: Token, price: Expr, Stock: Expr},
+    Var { name: Token, initializer: Option<Expr> },     // var x; / var x = e;
+    Product { name: Token, price: Expr, stock: Expr },
 }
