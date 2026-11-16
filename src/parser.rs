@@ -7,11 +7,18 @@ pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
 
-    // line of the first token of the expression being parsed
+    // expression mode: line of the first token of the current expression.
     fence_line: usize,
+
+    // true after parse_program() is called, false after parse() is called.
+    statement_mode: bool,
 
     // whether the parser is running in REPL mode or not
     repl: bool,
+
+    block_depth: usize, // tracks the depth of nested blocks
+
+    errors: Vec<ParseError>, // collects errors encountered during parsing
 }
 
 #[derive(Debug)]
