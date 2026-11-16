@@ -1,4 +1,6 @@
+// [FILENAME]: parser.rs
 use crate::expr::Expr;
+use crate::stmt::Stmt;
 use crate::token::Token;
 use crate::token_type::TokenType;
 
@@ -15,13 +17,17 @@ pub struct ParseError {
     pub message: String,
 }
 
-                        //  <T: expression, ParseError: message>
+//  <T: expression, ParseError: message>
 type ParseResult<T> = Result<T, ParseError>;
 
 impl Parser {
     // creates an instance of a Parser struct
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0, fence_line: 0 }
+        Parser {
+            tokens,
+            current: 0,
+            fence_line: 0,
+        }
     }
 
     pub fn parse(&mut self) -> Result<Vec<Expr>, Vec<ParseError>> {
@@ -37,7 +43,11 @@ impl Parser {
                 }
             }
         }
-        if errors.is_empty() { Ok(exprs) } else { Err(errors) }
+        if errors.is_empty() {
+            Ok(exprs)
+        } else {
+            Err(errors)
+        }
     }
 
     // one expression that must end where its line ends
@@ -54,7 +64,7 @@ impl Parser {
         Ok(expr)
     }
 
-    // after an error, discard the rest of the bad line 
+    // after an error, discard the rest of the bad line
     // no infinite loop: the first token of every expression
     // is on fence_line, so at least one token is always consumed
 
@@ -63,7 +73,6 @@ impl Parser {
             self.advance();
         }
     }
-
 
     // +-------------------------------+
     // | Precedence Chaining           |
@@ -93,7 +102,7 @@ impl Parser {
     // and -> comparison
     fn logic_and(&mut self) -> ParseResult<Expr> {
         let mut expr = self.equality()?;
-        
+
         while self.match_any(&[TokenType::And]) {
             let operator = self.previous().clone();
             let right = self.equality()?;
@@ -106,21 +115,24 @@ impl Parser {
         Ok(expr)
     }
 
-
     // equality -> comparison
     fn equality(&mut self) -> ParseResult<Expr> {
         // left comparison
         let mut expr = self.comparison()?;
-        
+
         // checks if it match ( "!=" | "==" )
         while self.match_any(&[TokenType::BangEqual, TokenType::EqualEqual]) {
             let operator = self.previous().clone();
-            
-            // left comparison 
+
+            // left comparison
             let right = self.comparison()?;
 
             // creates BT comparison ( ( "!=" | "==" ) comparison )*
-            expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            };
         }
 
         Ok(expr)
@@ -130,7 +142,7 @@ impl Parser {
     fn comparison(&mut self) -> ParseResult<Expr> {
         // left term
         let mut expr = self.term()?;
-        
+
         // checks if match any ( ">" | ">=" | "<" | "<=" )
         while self.match_any(&[
             TokenType::Greater,
@@ -139,11 +151,15 @@ impl Parser {
             TokenType::LessEqual,
         ]) {
             let operator = self.previous().clone();
-            // right term 
+            // right term
             let right = self.term()?;
 
             // term ( ( ">" | ">=" | "<" | "<=" ) term )*
-            expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            };
         }
 
         Ok(expr)
@@ -153,14 +169,18 @@ impl Parser {
     fn term(&mut self) -> ParseResult<Expr> {
         // left factor
         let mut expr = self.factor()?;
-        
+
         // checks if matches any ( "-" | "+" )
         while self.match_any(&[TokenType::Minus, TokenType::Plus]) {
             let operator = self.previous().clone();
             // right factor
             let right = self.factor()?;
             // factor ( ( "-" | "+" ) factor )*
-            expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            };
         }
 
         Ok(expr)
@@ -176,8 +196,12 @@ impl Parser {
             // right unary
             let right = self.unary()?;
             // unary ( ( "/" | "*" ) unary )*
-            expr = Expr::Binary { left: Box::new(expr), operator, right: Box::new(right) };
-    }
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                operator,
+                right: Box::new(right),
+            };
+        }
 
         Ok(expr)
     }
@@ -190,20 +214,22 @@ impl Parser {
             let right = self.unary()?;
 
             // ( "!" | "-" ) unary
-            return Ok(Expr::Unary { operator, right: Box::new(right) });
+            return Ok(Expr::Unary {
+                operator,
+                right: Box::new(right),
+            });
         }
-        
+
         // ( "!" | "-" ) primary
         self.primary()
     }
 
-// primary -> NUMBER | STRING | "true" | "false" | "nil"
-//      | "stock" IDENTIFIER | "price" IDENTIFIER
-//      | "revenue" | "profit"
-//      | "(" expression ")"
+    // primary -> NUMBER | STRING | "true" | "false" | "nil"
+    //      | "stock" IDENTIFIER | "price" IDENTIFIER
+    //      | "revenue" | "profit"
+    //      | "(" expression ")"
     fn primary(&mut self) -> ParseResult<Expr> {
-
-        // NUMBER | STRING | "true" | "false" | "nil" 
+        // NUMBER | STRING | "true" | "false" | "nil"
         if self.match_any(&[
             TokenType::Number,
             TokenType::String,
@@ -215,7 +241,7 @@ impl Parser {
             // whatever we matched straight into the node.
             return Ok(Expr::Literal(self.previous().clone()));
         }
-        
+
         // "stock" IDENTIFIER
         if self.match_any(&[TokenType::Stock]) {
             let name = self
@@ -230,7 +256,7 @@ impl Parser {
                 .consume(TokenType::Identifier, "Expect product name after 'price'.")?
                 .clone();
             return Ok(Expr::Price(name));
-        } 
+        }
 
         // "revenue" | "profit"
         if self.match_any(&[TokenType::Revenue]) {
@@ -251,8 +277,20 @@ impl Parser {
         Err(self.error(self.peek(), "Expect expression."))
     }
 
+    // for "while" expression block
+    fn while_statement(&mut self) -> Result<Stmt, ParseError> {
+        let condition = self.expression()?;
 
-    
+        // expect '{', from lab4
+        if !self.check(TokenType::LeftBrace) {
+            return Err(self.error(self.peek(), "Expect '{' before while loop body."));
+        }
+
+        let body = self.block()?;
+        //// ^^^^^^^^^^^^^^^^^^^^ usable once lab4 is finsihed
+        Ok(Stmt::While { condition, body })
+    }
+
     // Helper Functions
     fn match_any(&mut self, types: &[TokenType]) -> bool {
         for t in types {
@@ -302,17 +340,21 @@ impl Parser {
     fn previous(&self) -> &Token {
         &self.tokens[self.current - 1]
     }
-    
+
     fn error(&self, token: &Token, message: &str) -> ParseError {
-        // if the offending token is EOF or on a later line, report at 
+        // if the offending token is EOF or on a later line, report at
         // the end of the line the expression started on
-        let ran_out = token.token_type() == TokenType::Eof
-            || token.line() != self.fence_line;
+        let ran_out = token.token_type() == TokenType::Eof || token.line() != self.fence_line;
 
         let formatted = if ran_out {
             format!("[line {}] Error at end: {}", self.fence_line, message)
         } else {
-            format!("[line {}] Error at '{}': {}", token.line(), token.lexeme(), message)
+            format!(
+                "[line {}] Error at '{}': {}",
+                token.line(),
+                token.lexeme(),
+                message
+            )
         };
         eprintln!("{}", formatted);
         ParseError { message: formatted }
@@ -320,8 +362,7 @@ impl Parser {
 
     // TODO (week 2):
     // three new methods to be implemented:
-        // parse_program()
-        // statement()
-        // product_declaration()
-
+    // parse_program()
+    // statement()
+    // product_declaration()
 }

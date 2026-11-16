@@ -2,36 +2,37 @@
 //[DESC]:     entry point
 
 // imports
-use std::env;   // environment module
-use std::fs;    // filesystem module
-use std::io::{self, Write};
-use scanner::Scanner;
 use expr::Expr;
+use scanner::Scanner;
+use std::env; // environment module
+use std::fs; // filesystem module
+use std::io::{self, Write};
 
-const EXIT_USAGE:   i32 = 64;   // bad CL args or incorrect usage
-const EXIT_DATA:    i32 = 65;   // file I/O failure, scanner/parse error
-const EXIT_RUNTIME: i32 = 70;   // started, then failed partway
+const EXIT_USAGE: i32 = 64; // bad CL args or incorrect usage
+const EXIT_DATA: i32 = 65; // file I/O failure, scanner/parse error
+const EXIT_RUNTIME: i32 = 70; // started, then failed partway
 const INPUT_INDICATOR: &str = "> ";
 
+pub mod evaluator;
 pub mod expr;
 pub mod parser;
 pub mod print_ast;
-pub mod token_type;
-pub mod token;
 pub mod scanner;
+pub mod stmt;
+pub mod token;
+pub mod token_type;
 pub mod value;
-pub mod evaluator;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     const TOKENIZE: &str = "--tokenize";
     const PARSE: &str = "--parse";
     const EVAL: &str = "--eval";
-    
+
     match args.len() {
         // no arguments: run the REPL
-        1 => run_eval_prompt(), 
-        2 if args[1] == EVAL => run_eval_prompt(),  
+        1 => run_eval_prompt(),
+        2 if args[1] == EVAL => run_eval_prompt(),
         2 if args[1] == PARSE => run_parse_prompt(),
         2 if args[1] == TOKENIZE => run_prompt(),
         2 => run_program(&args[1]),
@@ -39,12 +40,13 @@ fn main() {
         3 if args[1] == PARSE => run_parse_file(&args[2]),
         3 if args[1] == EVAL => run_eval_file(&args[2]),
         _ => {
-            eprintln!("Usage: run [<path> | --tokenize [<path>] | --parse [<path>] | --eval [<path>]]");
+            eprintln!(
+                "Usage: run [<path> | --tokenize [<path>] | --parse [<path>] | --eval [<path>]]"
+            );
             std::process::exit(EXIT_USAGE);
         }
     }
 }
-
 
 // HELPER:  method for verifying if path exists/valid
 // returns: exit code 65 on bad file path
@@ -55,7 +57,6 @@ fn read_source(label: &str, path: &str) -> String {
     })
 }
 
-
 // runs a program from a file, or prints an error and exits if the file can't be read
 fn run_program(path: &str) {
     read_source("lab0", path);
@@ -63,12 +64,11 @@ fn run_program(path: &str) {
 }
 
 fn run_file(path: &str) {
-    let source = fs::read_to_string(path)
-        .unwrap_or_else(|e| {
-            eprintln!("lab1: cannot read '{path}': {e}");
-            std::process::exit(EXIT_DATA);
-        });
-    
+    let source = fs::read_to_string(path).unwrap_or_else(|e| {
+        eprintln!("lab1: cannot read '{path}': {e}");
+        std::process::exit(EXIT_DATA);
+    });
+
     let had_error = run(source);
 
     if had_error {
@@ -118,19 +118,14 @@ fn parse_exprs(source: String, first_line: usize) -> Option<Vec<Expr>> {
 }
 
 fn parse_source(source: String, first_line: usize) -> Option<Vec<String>> {
-    parse_exprs(source, first_line)
-        .map(|exprs| exprs.iter().map(print_ast::print).collect())
+    parse_exprs(source, first_line).map(|exprs| exprs.iter().map(print_ast::print).collect())
 }
 
-
-
-
 fn run_eval_file(path: &str) {
-    let source = fs::read_to_string(path)
-        .unwrap_or_else(|e| {
-            eprintln!("eval: cannot read '{path}': '{e}'");
-            std::process::exit(EXIT_DATA);
-        });
+    let source = fs::read_to_string(path).unwrap_or_else(|e| {
+        eprintln!("eval: cannot read '{path}': '{e}'");
+        std::process::exit(EXIT_DATA);
+    });
 
     // static error: nothing runs, exit EXIT_DATA
     let exprs = match parse_exprs(source, 1) {
@@ -138,17 +133,12 @@ fn run_eval_file(path: &str) {
         None => std::process::exit(EXIT_DATA),
     };
 
-
     // values print as we go; the first runtime error stops the run
     if let Err(err) = evaluator::evaluate_all(&exprs, |value| println!("{value}")) {
         eprintln!("{err}");
         std::process::exit(EXIT_RUNTIME);
     }
-
 }
-
-
-
 
 // REPL for --eval: prints the value of each line typed
 // runtime error is printed and session continues
@@ -170,7 +160,6 @@ fn run_prompt() {
     });
 }
 
-
 fn run(source: String) -> bool {
     run_at_line(source, 1)
 }
@@ -182,13 +171,12 @@ fn run_at_line(source: String, line: usize) -> bool {
 
     if !had_error {
         for token in &tokens {
-            println!("{}", token);          // only print if there was NO error
+            println!("{}", token); // only print if there was NO error
         }
     }
 
     had_error
 }
-
 
 // prompts, reads, trims, and numbers lines
 // all REPL mode calls this and supplies only 'handle'
@@ -199,7 +187,6 @@ fn run_repl(mut handle: impl FnMut(String, usize)) {
         print!("{}", INPUT_INDICATOR);
         // failed flush delays prompt (so not fatal)
         let _ = io::stdout().flush();
-
 
         let mut line = String::new();
         match io::stdin().read_line(&mut line) {
