@@ -123,6 +123,17 @@ impl Parser {
         }
     }
 
+    // declaration -> var_declaration | statement
+    fn declaration(&mut self) -> ParseResult<Stmt> {
+        // if the next token is 'var', parse a variable declaration, 
+        if self.match_any(&[TokenType::Var]) {
+            self.var_declaration()
+        // otherwise parse a statement
+        } else {
+            self.statement()   
+        }
+    }
+
 
     // +-------------------------------+
     // | Precedence Chaining           |
