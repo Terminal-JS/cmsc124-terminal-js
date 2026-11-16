@@ -489,8 +489,9 @@ impl Parser {
             return false;
         }
 
-        // a token on a leter line is never part of the current expression
-        if self.peek().line() != self.fence_line {
+        // expression mode only: a token on a later line is never part of
+        // the current expression. statement mode ignores lines entirely.
+        if !self.statement_mode && self.peek().line() != self.fence_line {
             return false;
         }
 
