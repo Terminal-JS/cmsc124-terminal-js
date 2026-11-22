@@ -7,6 +7,8 @@ use std::fs;    // filesystem module
 use std::io::{self, Write};
 use scanner::Scanner;
 use expr::Expr;
+use interpreter::Interpreter;
+use stmt::Stmt;
 
 const EXIT_USAGE:   i32 = 64;   // bad CL args or incorrect usage
 const EXIT_DATA:    i32 = 65;   // file I/O failure, scanner/parse error
@@ -23,6 +25,8 @@ pub mod value;
 pub mod evaluator;
 pub mod stmt;
 pub mod environment;
+pub mod store;
+pub mod interpreter;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -32,7 +36,7 @@ fn main() {
     
     match args.len() {
         // no arguments: run the REPL
-        1 => run_eval_prompt(), 
+        1 => run_repl_program(),
         2 if args[1] == EVAL => run_eval_prompt(),  
         2 if args[1] == PARSE => run_parse_prompt(),
         2 if args[1] == TOKENIZE => run_prompt(),
