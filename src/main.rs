@@ -93,6 +93,21 @@ fn run_repl_program() {
     });
 }
 
+// scans and parses statements; Some(stmts) if no lexical or syntax error
+fn parse_program_source(source: String, first_line: usize, repl: bool) -> Option<Vec<Stmt>> {
+    let mut scanner = Scanner::new_at_line(source, first_line);
+    let tokens = scanner.scan_tokens().clone();
+    let lexical_error = scanner.had_error();
+
+    let mut parser = parser::Parser::new(tokens);
+    let result = parser.parse_program(repl);
+
+    if lexical_error {
+        return None;
+    }
+    result.ok()
+}
+
 fn run_file(path: &str) {
     let source = fs::read_to_string(path)
         .unwrap_or_else(|e| {
