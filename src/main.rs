@@ -62,10 +62,21 @@ fn read_source(label: &str, path: &str) -> String {
 }
 
 
-// runs a program from a file, or prints an error and exits if the file can't be read
+// runs a program from a file: parse everything first (a syntax error means
+// nothing runs, exit 65), then execute (a runtime error stops it, exit 70)
 fn run_program(path: &str) {
-    read_source("lab0", path);
-    println!("Hello, world!");
+    let source = read_source("run", path);
+
+    let stmts = match parse_program_source(source, 1, false) {
+        Some(stmts) => stmts,
+        None => std::process::exit(EXIT_DATA),
+    };
+
+    let mut interpreter = Interpreter::new();
+    if let Err(err) = interpreter.run(&stmts, false) {
+        eprintln!("{err}");
+        std::process::exit(EXIT_RUNTIME);
+    }
 }
 
 fn run_file(path: &str) {
