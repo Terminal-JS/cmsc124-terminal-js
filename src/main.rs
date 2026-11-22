@@ -186,7 +186,8 @@ fn run_eval_file(path: &str) {
 
 
     // values print as we go; the first runtime error stops the run
-    if let Err(err) = evaluator::evaluate_all(&exprs, |value| println!("{value}")) {
+    let mut interpreter = Interpreter::new();
+    if let Err(err) = interpreter.evaluate_all(&exprs, |value| println!("{value}")) {
         eprintln!("{err}");
         std::process::exit(EXIT_RUNTIME);
     }
