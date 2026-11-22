@@ -7,6 +7,8 @@ use std::fs;    // filesystem module
 use std::io::{self, Write};
 use scanner::Scanner;
 use expr::Expr;
+use interpreter::Interpreter;
+use stmt::Stmt;
 
 const EXIT_USAGE:   i32 = 64;   // bad CL args or incorrect usage
 const EXIT_DATA:    i32 = 65;   // file I/O failure, scanner/parse error
@@ -23,6 +25,8 @@ pub mod value;
 pub mod evaluator;
 pub mod stmt;
 pub mod environment;
+pub mod store;
+pub mod interpreter;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -32,7 +36,7 @@ fn main() {
     
     match args.len() {
         // no arguments: run the REPL
-        1 => run_eval_prompt(), 
+        1 => run_repl_program(),
         2 if args[1] == EVAL => run_eval_prompt(),  
         2 if args[1] == PARSE => run_parse_prompt(),
         2 if args[1] == TOKENIZE => run_prompt(),
@@ -58,10 +62,50 @@ fn read_source(label: &str, path: &str) -> String {
 }
 
 
-// runs a program from a file, or prints an error and exits if the file can't be read
+// runs a program from a file: parse everything first (a syntax error means
+// nothing runs, exit 65), then execute (a runtime error stops it, exit 70)
 fn run_program(path: &str) {
-    read_source("lab0", path);
-    println!("Hello, world!");
+    let source = read_source("run", path);
+
+    let stmts = match parse_program_source(source, 1, false) {
+        Some(stmts) => stmts,
+        None => std::process::exit(EXIT_DATA),
+    };
+
+    let mut interpreter = Interpreter::new();
+    if let Err(err) = interpreter.run(&stmts, false) {
+        eprintln!("{err}");
+        std::process::exit(EXIT_RUNTIME);
+    }
+}
+
+// REPL for the plain interactive mode: one Interpreter for the whole session,
+// so variables and products survive from line to line.
+// a runtime error is printed and the session continues.
+fn run_repl_program() {
+    let mut interpreter = Interpreter::new();
+    run_repl(|line, n| {
+        if let Some(stmts) = parse_program_source(line, n, true) {
+            if let Err(err) = interpreter.run(&stmts, true) {
+                eprintln!("{err}");
+            }
+        }
+    });
+}
+
+// scans and parses statements; Some(stmts) if no lexical or syntax error
+fn parse_program_source(source: String, first_line: usize, repl: bool) -> Option<Vec<Stmt>> {
+    let mut scanner = Scanner::new_at_line(source, first_line);
+    let tokens = scanner.scan_tokens().clone();
+    let lexical_error = scanner.had_error();
+
+    let mut parser = parser::Parser::new(tokens);
+    let result = parser.parse_program(repl);
+
+    if lexical_error {
+        return None;
+    }
+    result.ok()
 }
 
 fn run_file(path: &str) {
@@ -142,7 +186,8 @@ fn run_eval_file(path: &str) {
 
 
     // values print as we go; the first runtime error stops the run
-    if let Err(err) = evaluator::evaluate_all(&exprs, |value| println!("{value}")) {
+    let mut interpreter = Interpreter::new();
+    if let Err(err) = interpreter.evaluate_all(&exprs, |value| println!("{value}")) {
         eprintln!("{err}");
         std::process::exit(EXIT_RUNTIME);
     }
@@ -156,9 +201,10 @@ fn run_eval_file(path: &str) {
 // runtime error is printed and session continues
 // file mode exits 70
 fn run_eval_prompt() {
+    let mut interpreter = Interpreter::new();
     run_repl(|line, n| {
         if let Some(exprs) = parse_exprs(line, n) {
-            if let Err(err) = evaluator::evaluate_all(&exprs, |value| println!("{value}")) {
+            if let Err(err) = interpreter.evaluate_all(&exprs, |value| println!("{value}")) {
                 eprintln!("{err}"); // report it and return to the prompt
             }
         };
