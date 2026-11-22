@@ -201,9 +201,10 @@ fn run_eval_file(path: &str) {
 // runtime error is printed and session continues
 // file mode exits 70
 fn run_eval_prompt() {
+    let mut interpreter = Interpreter::new();
     run_repl(|line, n| {
         if let Some(exprs) = parse_exprs(line, n) {
-            if let Err(err) = evaluator::evaluate_all(&exprs, |value| println!("{value}")) {
+            if let Err(err) = interpreter.evaluate_all(&exprs, |value| println!("{value}")) {
                 eprintln!("{err}"); // report it and return to the prompt
             }
         };
