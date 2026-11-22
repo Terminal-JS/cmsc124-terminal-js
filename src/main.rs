@@ -79,6 +79,20 @@ fn run_program(path: &str) {
     }
 }
 
+// REPL for the plain interactive mode: one Interpreter for the whole session,
+// so variables and products survive from line to line.
+// a runtime error is printed and the session continues.
+fn run_repl_program() {
+    let mut interpreter = Interpreter::new();
+    run_repl(|line, n| {
+        if let Some(stmts) = parse_program_source(line, n, true) {
+            if let Err(err) = interpreter.run(&stmts, true) {
+                eprintln!("{err}");
+            }
+        }
+    });
+}
+
 fn run_file(path: &str) {
     let source = fs::read_to_string(path)
         .unwrap_or_else(|e| {
